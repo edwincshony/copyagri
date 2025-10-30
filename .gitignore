@@ -1,0 +1,86 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment files
+.env
+.venv/
+env/
+venv/
+ENV/
+Pipfile.lock
+
+# VSCode settings
+.vscode/
+
+# PyCharm settings
+.idea/
+
+# Mac system files
+.DS_Store
+
+# Compiled Cython files
+*.so
+
+# Test and coverage
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Logs and debug
+*.log
+
+# Dataset / model files
+*.h5
+*.hdf5
+*.ckpt
+*.pth
+*.pt
+*.tflite
+*.onnx
+*.pb
+*.npy
+*.npz
+
+# Output folders
+__outputs__/
+runs/
+logs/
+checkpoints/
+models/
+results/
+output/
+outputs/
+
+# Jupyter output
+*.nbconvert.ipynb
+
+# Images and generated data
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.svg
+
+# My own notes
+*.bak
+*.tmp
+
+# Optional: exclude large files tracked by Git LFS
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Ignore experiments or scratch
+scratch/
+experiments/
