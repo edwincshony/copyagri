@@ -1,0 +1,31 @@
+{% extends 'accounts/base.html' %}
+{% block title %}{{ listing.name }} - AgriLeader{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>{{ listing.name }}</h2>
+        {% if listing.image %}
+            <img src="{{ listing.image.url }}" alt="{{ listing.name }}" class="img-fluid mb-3">
+        {% endif %}
+        <p><strong>Description:</strong> {{ listing.description }}</p>
+        <p><strong>Crop Type:</strong> {{ listing.crop_type }}</p>
+        <p><strong>Quantity:</strong> {{ listing.quantity }}</p>
+        <p><strong>Price per Unit:</strong> ₹{{ listing.price }}</p>
+        <p><strong>Location:</strong> {{ listing.location }}</p>
+        <h4>Current Bids</h4>
+        {% if bids %}
+            <ul>
+                {% for bid in bids %}
+                    <li>{{ bid.bidder.username }}: ₹{{ bid.amount }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No bids yet.</p>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'buyer:place_bid' listing.id %}" class="btn btn-primary w-100 mb-2">Place Bid</a>
+        <a href="{% url 'buyer:purchase_product' listing.id %}" class="btn btn-success w-100">Buy Now</a>
+    </div>
+</div>
+{% endblock %}

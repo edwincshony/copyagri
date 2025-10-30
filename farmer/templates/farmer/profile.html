@@ -1,0 +1,25 @@
+{% extends 'accounts/profile.html' %}
+{% block content %}
+{{ block.super }}  <!-- Original profile -->
+<h3>Land Records</h3>
+{% if land_records %}
+    <ul>
+        {% for record in land_records %}
+            <li>{{ record.survey_number }} - {{ record.area_acres }} acres</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'farmer:land_records' %}" class="btn btn-info">Manage Land Records</a>
+{% else %}
+    <p>No land records. <a href="#">Add</a></p>
+{% endif %}
+
+<h3>Documents</h3>
+{% if documents %}
+    <ul>
+        {% for doc in documents %}
+            <li>{{ doc.get_document_type_display }} - Status: {{ doc.status }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+<a href="{% url 'farmer:upload_document' %}" class="btn btn-primary">Upload Document</a>
+{% endblock %}

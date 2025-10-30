@@ -1,0 +1,25 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Admin Notifications - AgriLeader{% endblock %}
+{% block content %}
+<h2>All Notifications</h2>
+<a href="{% url 'notifications:send_notification' %}" class="btn btn-primary mb-3">Send Custom Notification</a>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr><th>User</th><th>Title</th><th>Type</th><th>Read</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            {% for notif in notifications %}
+            <tr>
+                <td>{{ notif.user.username }}</td>
+                <td>{{ notif.title }}</td>
+                <td>{{ notif.get_notification_type_display }}</td>
+                <td>{{ notif.is_read|yesno:"Yes,No" }}</td>
+                <td>{{ notif.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- Pagination -->
+{% endblock %}

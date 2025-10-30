@@ -1,0 +1,66 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Admin Dashboard - AgriLeader{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Admin Dashboard</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5>Total Users</h5>
+                <h2>{{ total_users }}</h2>
+                <a href="{% url 'adminpanel:user_management' %}" class="btn btn-light btn-sm">Manage Users</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5>Pending Approvals</h5>
+                <h2>{{ pending_approvals }}</h2>
+                <a href="{% url 'adminpanel:user_management' %}" class="btn btn-light btn-sm">View Approvals</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5>Pending Documents</h5>
+                <h2>{{ pending_docs }}</h2>
+                <a href="{% url 'adminpanel:document_verification' %}" class="btn btn-light btn-sm">Verify Documents</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5>Active Schemes</h5>
+                <h2>{{ total_schemes }}</h2>
+                <a href="{% url 'adminpanel:subsidy_schemes' %}" class="btn btn-light btn-sm">Manage Schemes</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <a href="{% url 'adminpanel:document_verification' %}" class="btn btn-warning w-100 mb-2">Document Verification</a>
+        <a href="{% url 'adminpanel:land_records' %}" class="btn btn-info w-100 mb-2">Land Records</a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'adminpanel:storage_slots' %}" class="btn btn-success w-100 mb-2">Storage Slots Management</a>
+        <a href="{% url 'adminpanel:cultivation_slots' %}" class="btn btn-success w-100 mb-2">Cultivation Slots Management</a>
+        <a href="{% url 'adminpanel:subsidy_schemes' %}" class="btn btn-secondary w-100 mb-2">Government Schemes</a>
+        <a href="{% url 'adminpanel:marketplace_monitoring' %}" class="btn btn-dark w-100 mb-2">Marketplace Monitoring</a>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'notifications:admin_notifications' %}" class="btn btn-warning w-100">Notifications Management</a>
+    </div>
+</div>
+{% endblock %}

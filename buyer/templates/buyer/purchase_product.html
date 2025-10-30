@@ -1,0 +1,12 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Purchase {{ listing.name }} - AgriLeader{% endblock %}
+{% block content %}
+<h2>Purchase {{ listing.name }}</h2>
+<p>Price per Unit: ₹{{ listing.price }} | Available: {{ listing.quantity }}</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-success">Confirm Purchase</button>
+</form>
+<a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-secondary">Back</a>
+{% endblock %}

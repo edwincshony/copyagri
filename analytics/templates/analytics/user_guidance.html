@@ -1,0 +1,21 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Guidance & Analytics - AgriLeader{% endblock %}
+{% block content %}
+<h2>Personalized Guidance</h2>
+<h3>Crop Yield Prediction</h3>
+<p>{{ prediction }}</p>
+<a href="{% url 'analytics:crop_predictions' %}" class="btn btn-info">View Details</a>
+<h3>Weather Alerts</h3>
+<div class="table-responsive">
+    <table class="table">
+        <thead><tr><th>Location</th><th>Type</th><th>Severity</th><th>Date</th></tr></thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr><td>{{ alert.location }}</td><td>{{ alert.alert_type }}</td><td>{{ alert.severity|title }}</td><td>{{ alert.date }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- Pagination -->
+<a href="{% url 'analytics:weather_alerts' %}" class="btn btn-warning">More Alerts</a>
+{% endblock %}

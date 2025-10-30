@@ -1,0 +1,13 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Booking Details - AgriLeader{% endblock %}
+{% block content %}
+<h2>{{ type|title }} Booking Details</h2>
+<p><strong>Slot:</strong> {{ booking.slot.name }}</p>
+<p><strong>Status:</strong> {{ booking.status }}</p>
+<p><strong>Dates:</strong> {{ booking.start_date }} to {{ booking.end_date }}</p>
+<p><strong>Total Price:</strong> ₹{{ booking.total_price }}</p>
+{% if booking.guidance_notes %}
+    <p><strong>Guidance:</strong> {{ booking.guidance_notes }}</p>
+{% endif %}
+<a href="{% url 'farmer:dashboard' %}" class="btn btn-secondary">Back</a>
+{% endblock %}

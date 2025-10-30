@@ -1,0 +1,59 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Document Verification - AgriLeader{% endblock %}
+{% block content %}
+<h2>Pending Document Verifications</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Type</th>
+                <th>Uploaded</th>
+                <th>Document</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in docs %}
+            <tr>
+                <td>{{ doc.user.username }}</td>
+                <td>{{ doc.get_document_type_display }}</td>
+                <td>{{ doc.uploaded_at|date:"Y-m-d" }}</td>
+                <td>
+                    {% if doc.file %}
+                    <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" style="display: inline;" onsubmit="return confirmAction(this);">
+                        {% csrf_token %}
+                        <input type="hidden" name="doc_id" value="{{ doc.id }}">
+                        <button type="submit" name="action" value="approve" class="btn btn-sm btn-success">Approve</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+<script>
+function confirmAction(form) {
+    const action = form.querySelector('button[type=submit][clicked=true]').value;
+    return confirm(`Are you sure you want to ${action} this document?`);
+}
+
+// Track which button was clicked
+document.querySelectorAll('form button[type=submit]').forEach(button => {
+    button.addEventListener('click', function() {
+        this.form.querySelectorAll('button[type=submit]').forEach(b => b.removeAttribute('clicked'));
+        this.setAttribute('clicked', 'true');
+    });
+});
+</script>
+{% endblock %}

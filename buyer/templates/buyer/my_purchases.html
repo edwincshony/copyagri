@@ -1,0 +1,24 @@
+{% extends 'accounts/base.html' %}
+{% block title %}My Purchases - AgriLeader{% endblock %}
+{% block content %}
+<h2>My Purchases</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Product</th><th>Quantity</th><th>Total Price</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ purchase.listing.name }}</td>
+                <td>{{ purchase.quantity }}</td>
+                <td>₹{{ purchase.total_price }}</td>
+                <td>{{ purchase.status }}</td>
+                <td>{{ purchase.purchase_date|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- Pagination -->
+{% endblock %}

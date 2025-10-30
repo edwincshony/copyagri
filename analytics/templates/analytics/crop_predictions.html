@@ -1,0 +1,28 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Crop Predictions - AgriLeader{% endblock %}
+{% block content %}
+<h2>Crop Yield Predictions</h2>
+<p>Total Verified Area: {{ total_area }} acres</p>
+<p>Predicted Yield: {{ predicted_yield }} tons (AI-based estimate)</p>
+<!-- Placeholder chart for yield over months -->
+<canvas id="yieldChart" width="400" height="200"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('yieldChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Predicted Yield (tons)',
+                data: [{{ total_area * 0.4 }}, {{ total_area * 0.5 }}, {{ total_area * 0.6 }}, {{ total_area * 0.7 }}, {{ total_area * 0.8 }}, {{ total_area * 0.9 }}],
+                backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'],
+                borderColor: ['rgba(75, 192, 192, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'],
+                borderWidth: 1
+            }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+    });
+</script>
+<a href="{% url 'analytics:user_guidance' %}" class="btn btn-secondary">Back</a>
+{% endblock %}

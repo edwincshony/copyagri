@@ -1,0 +1,27 @@
+{% extends 'accounts/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Edit Profile - AgriLeader{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2>Edit Profile</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-success">Update</button>
+{% if user.role == 'farmer' %}
+    <a href="{% url 'farmer:dashboard' %}" class="btn btn-secondary">Cancel</a>
+
+{% elif user.role == 'buyer' %}
+    <a href="{% url 'buyer:dashboard' %}" class="btn btn-secondary">Cancel</a>
+
+{% elif user.role == 'admin' %}
+    <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-secondary">Cancel</a>
+
+{% else %}
+    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+{% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

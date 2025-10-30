@@ -1,0 +1,55 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Farmer Dashboard - AgriLeader{% endblock %}
+{% block content %}
+<h2>Farmer Dashboard</h2>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Pending Bookings</h5>
+                <h2>{{ pending_bookings }}</h2>
+                <a href="{% url 'farmer:booking_detail' booking_id=0 %}" class="btn btn-light btn-sm">Track Bookings</a>  <!-- Placeholder; use actual ID -->
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Active Listings</h5>
+                <h2>{{ active_listings }}</h2>
+                <a href="{% url 'farmer:marketplace_sell' %}" class="btn btn-light btn-sm">Manage Listings</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5>Available Schemes</h5>
+                <h2>{{ schemes_count|default:0 }}</h2>
+                <a href="{% url 'farmer:subsidies' %}" class="btn btn-light btn-sm">View Schemes</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <a href="{% url 'farmer:cultivation_slots' %}" class="btn btn-success w-100 mb-2">Book Cultivation Slot</a>
+        <a href="{% url 'farmer:storage_slots' %}" class="btn btn-warning w-100 mb-2">Book Storage Slot</a>
+        <a href="{% url 'farmer:land_records' %}" class="btn btn-info w-100 mb-2">Manage Land Records</a>
+        <a href="{% url 'farmer:upload_document' %}" class="btn btn-secondary w-100 mb-2">Upload Documents</a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'farmer:marketplace_sell' %}" class="btn btn-primary w-100 mb-2">Marketplace - Sell Products</a>
+        <a href="{% url 'farmer:create_listing' %}" class="btn btn-primary w-100 mb-2">Create New Listing</a>
+        <a href="{% url 'farmer:analytics' %}" class="btn btn-secondary w-100 mb-2">Analytics & Guidance</a>
+        <a href="{% url 'notifications:farmer_notifications' %}" class="btn btn-dark w-100">Notifications</a>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-12">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary me-2">Profile</a>
+        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-secondary me-2">Edit Profile</a>
+        <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-dark">Change Password</a>
+    </div>
+</div>
+{% endblock %}

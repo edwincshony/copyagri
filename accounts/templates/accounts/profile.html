@@ -1,0 +1,24 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Profile - AgriLeader{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Your Profile</h2>
+        {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail" style="width: 150px;">
+        {% endif %}
+        <p><strong>Full Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Role:</strong> {{ user.get_role_display }}</p>
+        {% if user.role == 'buyer' %}
+            <p><strong>Buyer Type:</strong> {{ user.get_buyer_type_display }}</p>
+        {% endif %}
+        <p><strong>Mobile:</strong> {{ user.mobile }}</p>
+        <p><strong>Address:</strong> {{ user.address }}</p>
+        <p><strong>Approved:</strong> {{ user.is_approved|yesno:"Yes,No" }}</p>
+        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+        <a href="{% url 'accounts:change_password' %}" class="btn btn-secondary">Change Password</a>
+    </div>
+</div>
+{% endblock %}

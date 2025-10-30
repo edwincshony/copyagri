@@ -1,0 +1,12 @@
+{% extends 'accounts/base.html' %}
+{%load crispy_forms_tags%}
+{% block title %}Book Storage Slot - AgriLeader{% endblock %}
+{% block content %}
+<h2>Book {{ slot.name }}</h2>
+<p>Location: {{ slot.location }} | Available: {{ slot.available_slots }} slots | Price: ₹{{ slot.price_per_slot }}/slot | Type: {{ slot.get_slot_type_display }}</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-success">Confirm Booking</button>
+</form>
+{% endblock %}

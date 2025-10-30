@@ -1,0 +1,27 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Marketplace - Buy - AgriLeader{% endblock %}
+{% block content %}
+<h2>Available Products</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Name</th><th>Crop Type</th><th>Quantity</th><th>Price</th><th>Location</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for listing in listings %}
+            <tr>
+                <td>{{ listing.name }}</td>
+                <td>{{ listing.crop_type }}</td>
+                <td>{{ listing.quantity }}</td>
+                <td>₹{{ listing.price }}</td>
+                <td>{{ listing.location }}</td>
+                <td>
+                    <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-info">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- Pagination -->
+{% endblock %}

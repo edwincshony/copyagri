@@ -1,0 +1,13 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Notifications - AgriLeader{% endblock %}
+{% block content %}
+<h2>Notifications <span class="badge bg-primary">{{ unread_count }}</span></h2>
+<p>Quick view of unread notifications.</p>
+{% if user.role == 'admin' %}
+    <a href="{% url 'notifications:admin_notifications' %}" class="btn btn-info">View All</a>
+{% elif user.role == 'farmer' %}
+    <a href="{% url 'notifications:farmer_notifications' %}" class="btn btn-info">View Farmer Notifications</a>
+{% elif user.role == 'buyer' %}
+    <a href="{% url 'notifications:buyer_notifications' %}" class="btn btn-info">View Buyer Notifications</a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Cultivation Slots - AgriLeader{% endblock %}
+{% block content %}
+<h2>Available Cultivation Slots</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Name</th><th>Location</th><th>Available Area</th><th>Price/Acre</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for slot in slots %}
+            <tr>
+                <td>{{ slot.name }}</td>
+                <td>{{ slot.location }}</td>
+                <td>{{ slot.available_area_acres }}</td>
+                <td>₹{{ slot.price_per_acre }}</td>
+                <td><a href="{% url 'farmer:book_cultivation' slot.id %}" class="btn btn-sm btn-success">Book</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- Pagination -->
+{% endblock %}

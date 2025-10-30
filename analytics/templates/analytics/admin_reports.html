@@ -1,0 +1,25 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Admin Reports - AgriLeader{% endblock %}
+{% block content %}
+<h2>Analytics Reports</h2>
+<a href="{% url 'analytics:generate_report' %}" class="btn btn-primary mb-3">Generate New Report</a>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Title</th><th>Type</th><th>Period</th><th>Generated</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.title }}</td>
+                <td>{{ report.get_report_type_display }}</td>
+                <td>{{ report.start_date }} to {{ report.end_date }}</td>
+                <td>{{ report.generated_at|date:"Y-m-d" }}</td>
+                <td><a href="{% url 'analytics:report_detail' report.id %}" class="btn btn-sm btn-info">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- Pagination -->
+{% endblock %}

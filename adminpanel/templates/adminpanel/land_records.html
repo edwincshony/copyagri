@@ -1,0 +1,48 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Land Records - AgriLeader{% endblock %}
+{% block content %}
+<h2>Land Records Management</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Survey No.</th>
+                <th>Area (Acres)</th>
+                <th>Location</th>
+                <th>Document</th>
+                <th>Verified</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.user.username }}</td>
+                <td>{{ record.survey_number }}</td>
+                <td>{{ record.area_acres }}</td>
+                <td>{{ record.location }}</td>
+                <td>
+                    {% if record.document %}
+                    <a href="{{ record.document.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>{{ record.is_verified|yesno:"Yes,No" }}</td>
+                <td>
+                    {% if not record.is_verified %}
+                        <form method="post" action="{% url 'adminpanel:verify_land' record.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to verify this land record?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-primary">Verify</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock %}

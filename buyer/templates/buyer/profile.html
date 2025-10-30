@@ -1,0 +1,15 @@
+{% extends 'accounts/profile.html' %}
+{% block content %}
+{{ block.super }}
+<h3>My Purchases</h3>
+{% if purchases %}
+    <ul>
+        {% for purchase in purchases %}
+            <li>{{ purchase.listing.name }} - {{ purchase.quantity }} units</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'buyer:my_purchases' %}" class="btn btn-info">Manage Purchases</a>
+{% else %}
+    <p>No purchases yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Home - AgriLeader{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron bg-success text-white p-5 rounded">
+            <h1 class="display-4">Welcome to AgriLeader</h1>
+            <p class="lead">Smart Cultivation and Storage Slot Booking System. Empowering farmers with digital solutions for storage, markets, subsidies, and more.</p>
+            <hr class="my-4">
+            <p>Reduce post-harvest losses, access government schemes, and connect directly with buyers.</p>
+            {% if not user.is_authenticated %}
+                <a class="btn btn-light btn-lg" href="{% url 'accounts:register' %}" role="button">Get Started - Register</a>
+                <a class="btn btn-outline-light btn-lg ms-2" href="{% url 'accounts:login' %}" role="button">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Slot Booking</h5>
+                <p class="card-text">Book cultivation and storage slots with real-time availability.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Marketplace</h5>
+                <p class="card-text">Direct selling, buying, and bidding – no middlemen.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Subsidies & Insurance</h5>
+                <p class="card-text">Access government schemes and insurance seamlessly.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-12 text-center">
+        <h3>Location-Based Services</h3>
+        <p>Get suggestions for nearby warehouses, markets, and more based on your location.</p>
+    </div>
+</div>
+{% endblock %}

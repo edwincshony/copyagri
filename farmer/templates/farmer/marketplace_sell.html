@@ -1,0 +1,40 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Marketplace - Sell - AgriLeader{% endblock %}
+{% block content %}
+<h2>My Product Listings</h2>
+<a href="{% url 'farmer:create_listing' %}" class="btn btn-primary mb-3">Create New Listing</a>
+<div class="row">
+    {% for listing in listings %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            {% if listing.image %}
+                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.name }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+                <img src="https://via.placeholder.com/150" class="card-img-top" alt="No image" style="height: 200px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ listing.name }}</h5>
+                <p class="card-text">
+                    <strong>Crop Type:</strong> {{ listing.crop_type }}<br>
+                    <strong>Quantity:</strong> {{ listing.quantity }}<br>
+                    <strong>Price:</strong> ₹{{ listing.price }}<br>
+                    <strong>Location:</strong> {{ listing.location }}<br>
+                    {% if listing.description %}
+                        <strong>Description:</strong> {{ listing.description|truncatewords:20 }}<br>
+                    {% endif %}
+                </p>
+                <div class="card-actions">
+                    <a href="{% url 'farmer:edit_listing' listing.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'farmer:delete_listing' listing.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p>No listings available.</p>
+    </div>
+    {% endfor %}
+</div>
+<!-- Pagination -->
+{% endblock %}
