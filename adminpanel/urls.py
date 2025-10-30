@@ -24,4 +24,11 @@ urlpatterns = [
     path('subsidies/edit/<int:scheme_id>/', views.edit_subsidy_scheme, name='edit_subsidy_scheme'),
     path('subsidies/delete/<int:scheme_id>/', views.delete_subsidy_scheme, name='delete_subsidy_scheme'),
     path('marketplace/', views.marketplace_monitoring, name='marketplace_monitoring'),
+    path('cultivation-bookings/approve/<int:booking_id>/', views.approve_cultivation_booking, name='approve_cultivation_booking'),
+    path('cultivation-bookings/reject/<int:booking_id>/', views.reject_cultivation_booking, name='reject_cultivation_booking'),
+    path('storage-bookings/approve/<int:booking_id>/', views.approve_storage_booking, name='approve_storage_booking'),
+    path('storage-bookings/reject/<int:booking_id>/', views.reject_storage_booking, name='reject_storage_booking'),
+    path('cultivation-bookings/', views.cultivation_bookings, name='cultivation_bookings'),
+    path('storage-bookings/', views.storage_bookings, name='storage_bookings'),
+
 ]

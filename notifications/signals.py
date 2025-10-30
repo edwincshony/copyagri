@@ -8,8 +8,13 @@ from adminpanel.models import UserDocument
 from farmer.models import CultivationBooking, StorageBooking, Bid, ProductListing
 
 @receiver(post_save, sender=CustomUser)
-def user_approval_notification(sender, instance, **kwargs):
-    if instance.is_approved != instance._state.adding:  # Changed
+def user_approval_notification(sender, instance, created, **kwargs):
+    if created:
+        return  # Ignore creation
+
+    # Fetch previous value from DB
+    old_instance = CustomUser.objects.filter(pk=instance.pk).first()
+    if old_instance and old_instance.is_approved != instance.is_approved:
         status = 'Approved' if instance.is_approved else 'Rejected'
         Notification.objects.create(
             user=instance,
@@ -17,7 +22,7 @@ def user_approval_notification(sender, instance, **kwargs):
             message=f'Your AgriLeader account has been {status.lower()}.',
             notification_type='approval'
         )
-        # Email as before
+
 
 @receiver(post_save, sender=UserDocument)
 def document_notification(sender, instance, created, **kwargs):

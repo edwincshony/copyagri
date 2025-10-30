@@ -12,7 +12,7 @@
             <tr>
                 <td>{{ slot.name }}</td>
                 <td>{{ slot.location }}</td>
-                <td>{{ slot.available_area_acres }}</td>
+                <td>{{ slot.effective_available }}</td>
                 <td>₹{{ slot.price_per_acre }}</td>
                 <td><a href="{% url 'farmer:book_cultivation' slot.id %}" class="btn btn-sm btn-success">Book</a></td>
             </tr>

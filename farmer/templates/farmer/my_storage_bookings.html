@@ -1,0 +1,55 @@
+{% extends 'accounts/base.html' %}
+{% block title %}My Storage Bookings - AgriLeader{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">My Storage Bookings</h2>
+
+    {% if bookings %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Slot</th>
+                    <th>Booked Slots</th>
+                    <th>Total Price</th>
+                    <th>Start - End Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking.slot.name }}</td>
+                    <td>{{ booking.booked_slots }}</td>
+                    <td>₹{{ booking.total_price }}</td>
+                    <td>{{ booking.start_date }} → {{ booking.end_date }}</td>
+                    <td>
+                        {% if booking.status == "pending" %}
+                            <span class="badge bg-warning text-dark">{{ booking.status|title }}</span>
+                        {% elif booking.status == "approved" %}
+                            <span class="badge bg-success">{{ booking.status|title }}</span>
+                        {% elif booking.status == "rejected" %}
+                            <span class="badge bg-danger">{{ booking.status|title }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ booking.status|title }}</span>
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="pagination justify-content-center mt-3">
+            {% if bookings.has_previous %}
+                <a href="?page={{ bookings.previous_page_number }}" class="btn btn-outline-primary me-2">&laquo; Prev</a>
+            {% endif %}
+            <span class="align-middle">Page {{ bookings.number }} of {{ bookings.paginator.num_pages }}</span>
+            {% if bookings.has_next %}
+                <a href="?page={{ bookings.next_page_number }}" class="btn btn-outline-primary ms-2">Next &raquo;</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">You have no storage bookings yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

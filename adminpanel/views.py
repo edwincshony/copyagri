@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from farmer.models import CultivationBooking, StorageBooking
 from django.utils import timezone
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -259,3 +260,72 @@ def marketplace_monitoring(request):
     # Placeholder: Later integrate with marketplace models
     context = {'message': 'Marketplace monitoring coming soon. View product listings and transactions here.'}
     return render(request, 'adminpanel/marketplace_monitoring.html', context)
+
+
+@login_required
+@admin_required
+def approve_cultivation_booking(request, booking_id):
+    booking = get_object_or_404(CultivationBooking, id=booking_id)
+    if booking.status != 'approved':
+        booking.status = 'approved'
+        booking.approved_by = request.user
+        booking.save()
+        messages.success(request, f'{booking.user.username}\'s booking has been approved.')
+    else:
+        messages.info(request, 'Booking already approved.')
+    return redirect('adminpanel:cultivation_bookings')
+
+
+@login_required
+@admin_required
+def reject_cultivation_booking(request, booking_id):
+    booking = get_object_or_404(CultivationBooking, id=booking_id)
+    if booking.status != 'rejected':
+        booking.status = 'rejected'
+        booking.save()
+        messages.warning(request, f'{booking.user.username}\'s booking has been rejected.')
+    return redirect('adminpanel:cultivation_bookings')
+
+
+@login_required
+@admin_required
+def approve_storage_booking(request, booking_id):
+    booking = get_object_or_404(StorageBooking, id=booking_id)
+    if booking.status != 'approved':
+        booking.status = 'approved'
+        booking.approved_by = request.user
+        booking.save()
+        messages.success(request, f'{booking.user.username}\'s storage booking has been approved.')
+    else:
+        messages.info(request, 'Booking already approved.')
+    return redirect('adminpanel:storage_bookings')
+
+
+@login_required
+@admin_required
+def reject_storage_booking(request, booking_id):
+    booking = get_object_or_404(StorageBooking, id=booking_id)
+    if booking.status != 'rejected':
+        booking.status = 'rejected'
+        booking.save()
+        messages.warning(request, f'{booking.user.username}\'s storage booking has been rejected.')
+    return redirect('adminpanel:storage_bookings')
+
+@login_required
+@admin_required
+def cultivation_bookings(request):
+    bookings = CultivationBooking.objects.all().order_by('-booked_at')
+    paginator = Paginator(bookings, 10)
+    page_number = request.GET.get('page')
+    bookings_paginated = paginator.get_page(page_number)
+    return render(request, 'adminpanel/cultivation_bookings.html', {'bookings': bookings_paginated})
+
+
+@login_required
+@admin_required
+def storage_bookings(request):
+    bookings = StorageBooking.objects.all().order_by('-booked_at')
+    paginator = Paginator(bookings, 10)
+    page_number = request.GET.get('page')
+    bookings_paginated = paginator.get_page(page_number)
+    return render(request, 'adminpanel/storage_bookings.html', {'bookings': bookings_paginated})

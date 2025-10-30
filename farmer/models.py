@@ -6,7 +6,7 @@ from adminpanel.models import StorageSlot, CultivationSlot, SubsidyScheme
 
 class CultivationBooking(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'farmer'})
-    slot = models.ForeignKey(CultivationSlot, on_delete=models.CASCADE)
+    slot = models.ForeignKey(CultivationSlot, on_delete=models.CASCADE,related_name='bookings')
     booked_area_acres = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0.01)])
     start_date = models.DateField()
     end_date = models.DateField()

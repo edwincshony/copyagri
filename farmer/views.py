@@ -1,5 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
+from django.db.models import Sum, F, DecimalField, Q, Value
+from django.db.models.functions import Coalesce
+from django.core.paginator import Paginator
+from django.db import models
+from django.db.models.functions import Coalesce
 from django.contrib import messages
 from adminpanel.forms import LandRecordForm
 from django.core.paginator import Paginator
@@ -24,6 +30,8 @@ def dashboard(request):
     context = {
         'pending_bookings': CultivationBooking.objects.filter(user=request.user, status='pending').count() + StorageBooking.objects.filter(user=request.user, status='pending').count(),
         'active_listings': ProductListing.objects.filter(user=request.user, is_active=True).count(),
+        'schemes_count': SubsidyScheme.objects.count(),  # Add this line
+
     }
     return render(request, 'farmer/dashboard.html', context)
 
@@ -76,15 +84,38 @@ def upload_document(request):
         form = UserDocumentForm()
     return render(request, 'farmer/upload_document.html', {'form': form})
 
+from django.db.models import Sum, F, Value, Q
+from django.db.models.functions import Coalesce
+
 @login_required
 @farmer_required
 def cultivation_slots(request):
-    slots = CultivationSlot.objects.filter(available_area_acres__gt=0, is_active=True).order_by('location')
-    # Location-based: Filter by user address proximity (placeholder)
+    slots = CultivationSlot.objects.filter(is_active=True).annotate(
+        pending_booked=Coalesce(
+            Sum('bookings__booked_area_acres', filter=Q(bookings__status='pending')),
+            Value(0, output_field=DecimalField())  # <-- set output_field to DecimalField
+        )
+    ).annotate(
+        effective_available=F('available_area_acres') - F('pending_booked')
+    ).filter(effective_available__gt=0).order_by('location')
+
     paginator = Paginator(slots, 10)
     page_number = request.GET.get('page')
     slots_paginated = paginator.get_page(page_number)
     return render(request, 'farmer/cultivation_slots.html', {'slots': slots_paginated})
+
+@login_required
+@farmer_required
+def my_cultivation_bookings(request):
+    # Filter bookings for the logged-in farmer
+    bookings = CultivationBooking.objects.filter(user=request.user).order_by('-booked_at')
+
+    # Pagination
+    paginator = Paginator(bookings, 10)
+    page_number = request.GET.get('page')
+    bookings_paginated = paginator.get_page(page_number)
+
+    return render(request, 'farmer/my_cultivation_bookings.html', {'bookings': bookings_paginated})
 
 @login_required
 @farmer_required
@@ -109,7 +140,16 @@ def book_cultivation(request, slot_id):
 @login_required
 @farmer_required
 def storage_slots(request):
-    slots = StorageSlot.objects.filter(available_slots__gt=0, is_active=True).order_by('location')
+    # Base queryset for active storage slots
+    slots = StorageSlot.objects.filter(is_active=True).annotate(
+        pending_booked=Coalesce(
+            Sum('storagebooking__booked_slots', filter=models.Q(storagebooking__status='pending')),
+            Value(0)
+        )
+    ).annotate(
+        effective_available=F('available_slots') - F('pending_booked')
+    ).filter(effective_available__gt=0).order_by('location')
+
     paginator = Paginator(slots, 10)
     page_number = request.GET.get('page')
     slots_paginated = paginator.get_page(page_number)
@@ -117,22 +157,52 @@ def storage_slots(request):
 
 @login_required
 @farmer_required
+def my_storage_bookings(request):
+    # Filter bookings for the logged-in farmer
+    bookings = StorageBooking.objects.filter(user=request.user).order_by('-booked_at')
+
+    # Pagination
+    paginator = Paginator(bookings, 10)
+    page_number = request.GET.get('page')
+    bookings_paginated = paginator.get_page(page_number)
+
+    return render(request, 'farmer/my_storage_bookings.html', {'bookings': bookings_paginated})
+
+@login_required
+@farmer_required
 def book_storage(request, slot_id):
-    slot = get_object_or_404(StorageSlot, id=slot_id)
+    slot = (
+        StorageSlot.objects.filter(id=slot_id, is_active=True)
+        .annotate(
+            pending_booked=Coalesce(
+                Sum('storagebooking__booked_slots', filter=models.Q(storagebooking__status='pending')),
+                Value(0)
+            )
+        )
+        .annotate(
+            effective_available=F('available_slots') - F('pending_booked')
+        )
+        .first()
+    )
+
+    if not slot:
+        raise Http404("Storage slot not found or inactive.")
+
     if request.method == 'POST':
         form = StorageBookingForm(request.POST, user=request.user)
         if form.is_valid():
             booking = form.save(commit=False)
             booking.user = request.user
             booking.slot = slot
-            # Set total_price explicitly
             booking.total_price = booking.booked_slots * slot.price_per_slot
             booking.save()
             messages.success(request, 'Storage slot booked successfully! Awaiting approval.')
             return redirect('farmer:dashboard')
     else:
         form = StorageBookingForm(user=request.user, initial={'slot': slot})
+
     return render(request, 'farmer/book_storage.html', {'form': form, 'slot': slot})
+
 
 
 @login_required
