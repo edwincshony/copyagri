@@ -8,7 +8,11 @@
             <div class="card-body">
                 <h5>Pending Bookings</h5>
                 <h2>{{ pending_bookings }}</h2>
-                <a href="{% url 'farmer:booking_detail' booking_id=0 %}" class="btn btn-light btn-sm">Track Bookings</a>  <!-- Placeholder; use actual ID -->
+{% for booking in bookings %}
+    <a href="{% url 'farmer:booking_detail' booking_id=booking.id %}" class="btn btn-light btn-sm">
+        View Booking {{ booking.id }}
+    </a>
+{% endfor %}
             </div>
         </div>
     </div>
