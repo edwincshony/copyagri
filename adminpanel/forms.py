@@ -50,8 +50,11 @@ class CultivationSlotForm(forms.ModelForm):
 class SubsidySchemeForm(forms.ModelForm):
     class Meta:
         model = SubsidyScheme
-        fields = ['name', 'description', 'eligibility_criteria', 'subsidy_amount']
-        widgets = {'description': forms.Textarea(attrs={'rows': 3}), 'eligibility_criteria': forms.Textarea(attrs={'rows': 3})}
+        fields = ['name', 'description', 'eligibility_criteria', 'subsidy_amount', 'link']  # 👈 Added 'link'
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'eligibility_criteria': forms.Textarea(attrs={'rows': 3}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -4,6 +4,9 @@
 <h2>Analytics and Crop Guidance</h2>
 <div class="alert alert-info">
     {{ message }}
+            <a href="{% url 'analytics:user_guidance' %}" class="btn btn-warning w-100 mb-2">Guidance</a>
+        <a href="{% url 'analytics:weather_alerts' %}" class="btn btn-info w-100 mb-2">weather_alerts</a>
+        <a href="{% url 'analytics:crop_predictions' %}" class="btn btn-secondary w-100 mb-2">crop_predictions</a>
 </div>
 <p>Weather alerts and AI predictions will be integrated here.</p>
 {% endblock %}

@@ -16,6 +16,10 @@
                 <td>₹{{ slot.price_per_acre }}</td>
                 <td><a href="{% url 'farmer:book_cultivation' slot.id %}" class="btn btn-sm btn-success">Book</a></td>
             </tr>
+                        {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">Currently, no cultivation slots are available.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>

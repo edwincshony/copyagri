@@ -1,17 +1,39 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Land Records - AgriLeader{% endblock %}
 {% block content %}
-<h2>My Land Records</h2>
-<!-- Table similar to admin, but for own; add/edit form if needed -->
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">My Land Records</h2>
+    <a href="{% url 'farmer:upload_land_record' %}" class="btn btn-primary">
+        + Upload New Land Record
+    </a>
+</div>
+
 <div class="table-responsive">
-    <table class="table">
-        <thead><tr><th>Survey No.</th><th>Area</th><th>Location</th><th>Verified</th></tr></thead>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Survey No.</th>
+                <th>Area</th>
+                <th>Location</th>
+                <th>Verified</th>
+            </tr>
+        </thead>
         <tbody>
             {% for record in records %}
-            <tr><td>{{ record.survey_number }}</td><td>{{ record.area_acres }}</td><td>{{ record.location }}</td><td>{{ record.is_verified|yesno }}</td></tr>
+            <tr>
+                <td>{{ record.survey_number }}</td>
+                <td>{{ record.area_acres }}</td>
+                <td>{{ record.location }}</td>
+                <td>{{ record.is_verified|yesno:"Yes,No" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">No land records found.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
-<a href="{% url 'farmer:upload_land_record' %}" class="btn btn-primary mb-3">Upload New Land Record</a>
+
 {% endblock %}

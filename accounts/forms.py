@@ -18,14 +18,22 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'first_name', 'last_name', 'role', 'mobile', 'address', 'profile_picture', 'buyer_type', 'password1', 'password2')
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'role', 
+            'mobile', 'address', 'profile_picture', 'buyer_type', 
+            'password1', 'password2'
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Register', css_class='btn btn-primary'))
-        # Conditional display for buyer_type
-        self.fields['buyer_type'].widget.attrs['style'] = 'display: none;'  # JS will show/hide
+        self.fields['buyer_type'].widget.attrs['style'] = 'display: none;'
+
+        # 👇 Mark mandatory fields
+        self.fields['email'].required = True
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
 
     def clean_mobile(self):
         mobile = self.cleaned_data['mobile']
@@ -42,6 +50,7 @@ class CustomUserCreationForm(UserCreationForm):
         if role == 'farmer':
             cleaned_data['buyer_type'] = None
         return cleaned_data
+
 
 class CustomUserAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):

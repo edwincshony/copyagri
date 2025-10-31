@@ -65,6 +65,7 @@ class SubsidyScheme(models.Model):
     description = models.TextField()
     eligibility_criteria = models.TextField()
     subsidy_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    link = models.URLField(max_length=500, null=False, blank=False, help_text="Provide a valid government scheme URL")  # 👈 New Field
     is_active = models.BooleanField(default=True)
     added_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'admin'})
     added_at = models.DateTimeField(auto_now_add=True)

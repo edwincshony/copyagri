@@ -35,6 +35,11 @@ class CustomUser(AbstractUser):
         ('farmer', 'Farmer'),
         ('buyer', 'Buyer'),
     ]
+
+    email = models.EmailField(unique=True, blank=False, null=False)  # 👈 make email required and unique
+    first_name = models.CharField(max_length=150, blank=False, null=False)  # 👈 required
+    last_name = models.CharField(max_length=150, blank=False, null=False)   # 👈 required
+
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='farmer')
     mobile = models.CharField(
         max_length=10,
@@ -51,10 +56,11 @@ class CustomUser(AbstractUser):
     )
     is_approved = models.BooleanField(default=False)
 
-    objects = CustomUserManager()  # 👈 link the manager
+    objects = CustomUserManager()
 
     def __str__(self):
         return self.username
+
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
