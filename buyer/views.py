@@ -19,9 +19,21 @@ def buyer_required(view_func):
 @login_required
 @buyer_required
 def dashboard(request):
+    now = timezone.now()
+
+    total_purchases = Purchase.objects.filter(buyer=request.user).count()
+
+    # ✅ Only include bids on active listings where bidding hasn't ended
+    active_bids = Bid.objects.filter(
+        bidder=request.user,
+        is_accepted=False,
+        listing__is_active=True,
+        listing__bid_end_time__gt=now
+    ).count()
+
     context = {
-        'total_purchases': Purchase.objects.filter(buyer=request.user).count(),
-        'active_bids': Bid.objects.filter(bidder=request.user, is_accepted=False).count(),
+        'total_purchases': total_purchases,
+        'active_bids': active_bids,
     }
     return render(request, 'buyer/dashboard.html', context)
 
@@ -43,17 +55,69 @@ def marketplace_buy(request):
     listings_paginated = paginator.get_page(page_number)
     return render(request, 'buyer/marketplace_buy.html', {'listings': listings_paginated})
 
+from django.utils import timezone
+from buyer.models import Purchase
+
 @login_required
 @buyer_required
 def product_detail(request, listing_id):
-    listing = get_object_or_404(ProductListing, id=listing_id, is_active=True)
+    listing = get_object_or_404(ProductListing, id=listing_id)
+
+    # ✅ Auto-close expired listing (redundant safety, won't duplicate purchases)
+    if listing.is_active and listing.bid_end_time and listing.bid_end_time < timezone.now():
+        highest_bid = listing.highest_bid()
+        if highest_bid:
+            highest_bid.is_accepted = True
+            highest_bid.save(update_fields=["is_accepted"])
+
+            # Use same duplicate-safe pattern
+            Purchase.objects.get_or_create(
+                buyer=highest_bid.bidder,
+                listing=listing,
+                defaults={
+                    "quantity": listing.quantity,
+                    "total_price": highest_bid.amount,
+                },
+            )
+
+        listing.is_active = False
+        listing.save(update_fields=["is_active"])
+
+    # Get all bids (sorted highest to lowest)
     bids = Bid.objects.filter(listing=listing).order_by('-amount')
-    return render(request, 'buyer/product_detail.html', {'listing': listing, 'bids': bids})
+
+    # Determine winner
+    winner_bid = None
+    is_winner = False
+
+    if not listing.is_active and bids.exists():
+        winner_bid = bids.first()
+        if request.user == winner_bid.bidder:
+            is_winner = True
+
+    context = {
+        'listing': listing,
+        'bids': bids,
+        'winner_bid': winner_bid,
+        'is_winner': is_winner,
+        'now': timezone.now(),
+    }
+    return render(request, 'buyer/product_detail.html', context)
+
+
+
+
+# buyer/views.py
 
 @login_required
 @buyer_required
 def place_bid(request, listing_id):
     listing = get_object_or_404(ProductListing, id=listing_id, is_active=True)
+
+    if not listing.is_bidding_open():
+        messages.error(request, "Bidding for this listing has ended.")
+        return redirect('buyer:product_detail', listing_id=listing.id)
+
     if request.method == 'POST':
         form = BidForm(request.POST, listing=listing)
         if form.is_valid():
@@ -64,7 +128,9 @@ def place_bid(request, listing_id):
             return redirect('buyer:product_detail', listing_id=listing.id)
     else:
         form = BidForm(listing=listing)
+
     return render(request, 'buyer/place_bid.html', {'form': form, 'listing': listing})
+
 
 @login_required
 @buyer_required
@@ -86,6 +152,40 @@ def purchase_product(request, listing_id):
     else:
         form = PurchaseForm(listing=listing)
     return render(request, 'buyer/purchase_product.html', {'form': form, 'listing': listing})
+
+@login_required
+@buyer_required
+def make_bid_payment(request, bid_id):
+    bid = get_object_or_404(Bid, id=bid_id, bidder=request.user)
+    listing = bid.listing
+
+    # Always pick the most recent purchase for that listing and user
+    purchase = Purchase.objects.filter(buyer=request.user, listing=listing).order_by('-id').first()
+
+    if not purchase:
+        messages.error(request, "No purchase record found for this bid.")
+        return redirect('buyer:product_detail', listing_id=listing.id)
+
+    # If already paid or confirmed, don't allow double payment
+    if purchase.status.lower() in ["paid", "confirmed"]:
+        messages.info(request, f"This purchase is already marked as '{purchase.status}'.")
+        return redirect('buyer:my_purchases')
+
+    if request.method == "POST":
+        purchase.status = "Paid"
+        purchase.save(update_fields=["status"])
+        messages.success(request, "✅ Payment successful for your winning bid!")
+        return redirect('buyer:my_purchases')
+
+    return render(
+        request,
+        "buyer/make_bid_payment.html",
+        {"purchase": purchase, "listing": listing, "bid": bid},
+    )
+
+
+
+
 
 @login_required
 @buyer_required

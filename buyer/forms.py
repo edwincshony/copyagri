@@ -8,17 +8,19 @@ from .models import Purchase
 from farmer.models import Bid
 from adminpanel.models import StorageSlot
 
+# buyer/forms.py
+
 class BidForm(forms.ModelForm):
     class Meta:
         model = Bid
         fields = ['amount']
 
     def __init__(self, *args, **kwargs):
-        listing = kwargs.pop('listing', None)
+        self.listing = kwargs.pop('listing', None)
         super().__init__(*args, **kwargs)
-        if listing:
-            self.instance.listing = listing
-            self.fields['amount'].min_value = listing.price  # Min bid = price
+        if self.listing:
+            self.instance.listing = self.listing
+            self.fields['amount'].min_value = self.listing.price
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Place Bid', css_class='btn btn-primary'))
 
@@ -26,7 +28,18 @@ class BidForm(forms.ModelForm):
         amount = self.cleaned_data['amount']
         if amount <= 0:
             raise ValidationError('Bid amount must be positive.')
+
+        highest_bid = self.listing.highest_bid()
+        if highest_bid and amount <= highest_bid.amount:
+            raise ValidationError(f'Your bid must be higher than ₹{highest_bid.amount}.')
         return amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.listing.is_bidding_open():
+            raise ValidationError("Bidding has closed for this product.")
+        return cleaned_data
+
 
 class PurchaseForm(forms.ModelForm):
     class Meta:

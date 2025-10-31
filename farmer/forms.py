@@ -66,17 +66,55 @@ class StorageBookingForm(forms.ModelForm):
             cleaned_data['total_price'] = slots * slot.price_per_slot
         return cleaned_data
 
+from django import forms
+from django.utils import timezone
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from farmer.models import ProductListing
+
 class ProductListingForm(forms.ModelForm):
     class Meta:
         model = ProductListing
-        fields = ['name', 'description', 'quantity', 'price', 'crop_type', 'location', 'image']
+        fields = [
+            'name', 'description', 'quantity', 'price', 'crop_type',
+            'location', 'image', 'bid_start_time', 'bid_end_time'
+        ]
+        widgets = {
+            'bid_start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'bid_end_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Create Listing', css_class='btn btn-primary'))
 
+        # ⏰ Pre-fill start time with current time
+        if not self.instance.pk:
+            now = timezone.localtime()
+            self.initial['bid_start_time'] = now
+
+            # Add HTML min attributes (for browser restriction)
+            now_str = now.strftime("%Y-%m-%dT%H:%M")
+            self.fields['bid_start_time'].widget.attrs['min'] = now_str
+            self.fields['bid_end_time'].widget.attrs['min'] = now_str
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('bid_start_time')
+        end = cleaned_data.get('bid_end_time')
+
+        # ⏰ Backend validation for time logic
+        now = timezone.now()
+        if start and start < now:
+            self.add_error('bid_start_time', "Start time cannot be in the past.")
+        if end and end < now:
+            self.add_error('bid_end_time', "End time cannot be in the past.")
+        if start and end and end <= start:
+            self.add_error('bid_end_time', "End time must be after start time.")
+        return cleaned_data
+
     def clean_location(self):
         location = self.cleaned_data['location']
-        # Placeholder geocoder: In real, use geopy to suggest/validate
         return location

@@ -1,0 +1,13 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Complete Payment - {{ bid.listing.name }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Complete Payment</h2>
+    <p>You won <strong>{{ listing.name }}</strong> with a bid of ₹{{ bid.amount }}.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Pay ₹{{ bid.amount }}</button>
+        <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

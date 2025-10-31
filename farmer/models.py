@@ -52,11 +52,45 @@ class ProductListing(models.Model):
     crop_type = models.CharField(max_length=50)
     location = models.CharField(max_length=200)  # Geo-suggested
     image = models.ImageField(upload_to='listings/', blank=True)
+    # 🕒 Bidding Time Window
+    bid_start_time = models.DateTimeField(default=timezone.now)
+    bid_end_time = models.DateTimeField(null=True, blank=True)    
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def is_bidding_open(self):
+        now = timezone.now()
+        return self.is_active and self.bid_start_time <= now < (self.bid_end_time or now)
+
+    def highest_bid(self):
+        return self.bids.order_by('-amount').first()
+
     def __str__(self):
         return f"{self.user.username} - {self.name}"
+    
+# farmer/models.py
+    def close_bidding(self):
+        from buyer.models import Purchase
+
+        if not self.is_active:
+            return  # already closed, no loop
+
+        if self.bid_end_time and self.bid_end_time < timezone.now():
+            highest_bid = self.highest_bid()
+            if highest_bid:
+                highest_bid.is_accepted = True
+                highest_bid.save()
+                Purchase.objects.get_or_create(
+                    buyer=highest_bid.bidder,
+                    listing=self,
+                    quantity=self.quantity,
+                    total_price=highest_bid.amount,
+                )
+            # ✅ Important: mark inactive *once*
+            self.is_active = False
+            super(ProductListing, self).save(update_fields=['is_active'])
+
+
 
 class Bid(models.Model):
     listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='bids')

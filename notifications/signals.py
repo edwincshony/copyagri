@@ -63,7 +63,7 @@ def booking_notification(sender, instance, created, **kwargs):
 def bid_notification(sender, instance, created, **kwargs):
     if created:
         Notification.objects.create(
-            bidder=instance.bidder,
+            user=instance.bidder,
             title='Bid Placed',
             message=f'Your bid of ₹{instance.amount} on {instance.listing.name} has been placed.',
             notification_type='marketplace'
@@ -78,7 +78,7 @@ def bid_notification(sender, instance, created, **kwargs):
         )
     elif instance.is_accepted:
         Notification.objects.create(
-            bidder=instance.bidder,
+            user=instance.bidder,
             title='Bid Accepted',
             message=f'Your bid on {instance.listing.name} has been accepted.',
             notification_type='marketplace'

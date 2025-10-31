@@ -3,22 +3,56 @@
 {% block content %}
 <h2>My Purchases</h2>
 <div class="table-responsive">
-    <table class="table table-striped">
-        <thead>
-            <tr><th>Product</th><th>Quantity</th><th>Total Price</th><th>Status</th><th>Date</th></tr>
+    <table class="table table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Total Price (₹)</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
         </thead>
         <tbody>
             {% for purchase in purchases %}
             <tr>
                 <td>{{ purchase.listing.name }}</td>
                 <td>{{ purchase.quantity }}</td>
-                <td>₹{{ purchase.total_price }}</td>
-                <td>{{ purchase.status }}</td>
-                <td>{{ purchase.purchase_date|date:"Y-m-d" }}</td>
+                <td>{{ purchase.total_price }}</td>
+                <td>
+                    {% if purchase.status %}
+                        <span class="badge bg-success">{{ purchase.status|capfirst }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Completed</span>
+                    {% endif %}
+                </td>
+                <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">You haven’t made any purchases yet.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
 <!-- Pagination -->
+{% if purchases.has_other_pages %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if purchases.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ purchases.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        {% for page in purchases.paginator.page_range %}
+            <li class="page-item {% if page == purchases.number %}active{% endif %}">
+                <a class="page-link" href="?page={{ page }}">{{ page }}</a>
+            </li>
+        {% endfor %}
+        {% if purchases.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ purchases.next_page_number }}">Next</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}

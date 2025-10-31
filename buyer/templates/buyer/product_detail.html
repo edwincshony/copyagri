@@ -4,28 +4,82 @@
 <div class="row">
     <div class="col-md-8">
         <h2>{{ listing.name }}</h2>
+
         {% if listing.image %}
-            <img src="{{ listing.image.url }}" alt="{{ listing.name }}" class="img-fluid mb-3">
+            <img src="{{ listing.image.url }}" alt="{{ listing.name }}" class="img-fluid mb-3 rounded shadow-sm">
         {% endif %}
+
         <p><strong>Description:</strong> {{ listing.description }}</p>
         <p><strong>Crop Type:</strong> {{ listing.crop_type }}</p>
         <p><strong>Quantity:</strong> {{ listing.quantity }}</p>
-        <p><strong>Price per Unit:</strong> ₹{{ listing.price }}</p>
+        <p><strong>Base Price:</strong> ₹{{ listing.price }}</p>
         <p><strong>Location:</strong> {{ listing.location }}</p>
+
+<p>
+    <strong>Bidding Starts:</strong>
+    {% if listing.bid_start_time %}
+        {{ listing.bid_start_time|date:"M d, Y H:i" }}
+    {% else %}
+        <span class="text-muted">No start time</span>
+    {% endif %}
+</p>
+
+<p>
+    <strong>Bidding Ends:</strong>
+    {% if listing.bid_end_time %}
+        {{ listing.bid_end_time|date:"M d, Y H:i" }}
+        {% if listing.bid_end_time < now %}
+            <span class="badge bg-danger">Closed</span>
+        {% else %}
+            <span class="badge bg-success">Open</span>
+        {% endif %}
+    {% else %}
+        <span class="text-muted">No end time</span>
+    {% endif %}
+</p>
+
+
+        <hr>
+
         <h4>Current Bids</h4>
         {% if bids %}
-            <ul>
-                {% for bid in bids %}
-                    <li>{{ bid.bidder.username }}: ₹{{ bid.amount }}</li>
-                {% endfor %}
-            </ul>
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr><th>Bidder</th><th>Amount (₹)</th><th>Placed At</th></tr>
+                </thead>
+                <tbody>
+                    {% for bid in bids %}
+                        <tr {% if bid.is_accepted %}class="table-success"{% endif %}>
+                            <td>{{ bid.bidder.username }}</td>
+                            <td>{{ bid.amount }}</td>
+                            <td>{{ bid.placed_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         {% else %}
-            <p>No bids yet.</p>
+            <p class="text-muted">No bids yet.</p>
         {% endif %}
     </div>
+
     <div class="col-md-4">
-        <a href="{% url 'buyer:place_bid' listing.id %}" class="btn btn-primary w-100 mb-2">Place Bid</a>
-        <a href="{% url 'buyer:purchase_product' listing.id %}" class="btn btn-success w-100">Buy Now</a>
+
+        {% if is_winner %}
+            <div class="alert alert-success">
+                🎉 Congratulations {{ request.user.username }}!<br>
+                You won this bid with ₹{{ winner_bid.amount }}.<br>
+                Please complete your payment below.
+            </div>
+            <a href="{% url 'buyer:make_bid_payment' winner_bid.id %}" class="btn btn-success w-100 mb-2">
+                Pay ₹{{ winner_bid.amount }}
+            </a>
+        {% elif listing.is_bidding_open %}
+            <a href="{% url 'buyer:place_bid' listing.id %}" class="btn btn-primary w-100 mb-2">Place Bid</a>
+        {% else %}
+            <button class="btn btn-secondary w-100 mb-2" disabled>Bidding Closed</button>
+        {% endif %}
+
+        <a href="{% url 'buyer:purchase_product' listing.id %}" class="btn btn-outline-success w-100">Buy Now</a>
     </div>
 </div>
 {% endblock %}

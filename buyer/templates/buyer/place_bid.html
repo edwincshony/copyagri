@@ -1,13 +1,33 @@
 {% extends 'accounts/base.html' %}
 {% load crispy_forms_tags %}
-{% block title %}Place Bid - AgriLeader{% endblock %}
+{% block title %}Place Bid - {{ listing.name }} - AgriLeader{% endblock %}
 {% block content %}
-<h2>Place Bid on {{ listing.name }}</h2>
-<p>Current Price: ₹{{ listing.price }}</p>
-<form method="post">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit" class="btn btn-primary">Place Bid</button>
-</form>
-<a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-secondary">Back</a>
+<div class="container">
+    <h2 class="mb-3">Place a Bid on {{ listing.name }}</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <p><strong>Base Price:</strong> ₹{{ listing.price }}</p>
+            {% with highest=listing.highest_bid %}
+                <p><strong>Current Highest Bid:</strong>
+                    {% if highest %}₹{{ highest.amount }} by {{ highest.bidder.username }}
+                    {% else %}<span class="text-muted">No bids yet</span>{% endif %}
+                </p>
+            {% endwith %}
+            <p><strong>Bidding Ends:</strong> {{ listing.bid_end_time|date:"M d, Y H:i" }}</p>
+        </div>
+    </div>
+
+    {% if listing.is_bidding_open %}
+        <form method="post" class="card p-3 shadow-sm">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary w-100 mt-2">Place Bid</button>
+        </form>
+    {% else %}
+        <div class="alert alert-danger">Bidding has closed for this listing.</div>
+    {% endif %}
+
+    <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-secondary mt-3">Back</a>
+</div>
 {% endblock %}

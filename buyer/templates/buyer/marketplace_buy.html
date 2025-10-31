@@ -2,10 +2,20 @@
 {% block title %}Marketplace - Buy - AgriLeader{% endblock %}
 {% block content %}
 <h2>Available Products</h2>
+
 <div class="table-responsive">
-    <table class="table table-striped">
-        <thead>
-            <tr><th>Name</th><th>Crop Type</th><th>Quantity</th><th>Price</th><th>Location</th><th>Actions</th></tr>
+    <table class="table table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Crop Type</th>
+                <th>Quantity</th>
+                <th>Base Price (₹)</th>
+                <th>Highest Bid (₹)</th>
+                <th>Bid Ends</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody>
             {% for listing in listings %}
@@ -13,15 +23,52 @@
                 <td>{{ listing.name }}</td>
                 <td>{{ listing.crop_type }}</td>
                 <td>{{ listing.quantity }}</td>
-                <td>₹{{ listing.price }}</td>
+                <td>{{ listing.price }}</td>
+                <td>
+                    {% with highest=listing.highest_bid %}
+                        {% if highest %}{{ highest.amount }}{% else %}-{% endif %}
+                    {% endwith %}
+                </td>
+                <td>
+                    {% if listing.bid_end_time %}
+                        {{ listing.bid_end_time|date:"M d, Y H:i" }}
+                        {% if listing.bid_end_time < now %}
+                            <span class="badge bg-danger">Closed</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">No deadline</span>
+                    {% endif %}
+                </td>
                 <td>{{ listing.location }}</td>
                 <td>
                     <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-info">View</a>
                 </td>
             </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center text-muted">No active listings found.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
 <!-- Pagination -->
+{% if listings.has_other_pages %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if listings.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ listings.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        {% for page in listings.paginator.page_range %}
+            <li class="page-item {% if page == listings.number %}active{% endif %}">
+                <a class="page-link" href="?page={{ page }}">{{ page }}</a>
+            </li>
+        {% endfor %}
+        {% if listings.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ listings.next_page_number }}">Next</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}
