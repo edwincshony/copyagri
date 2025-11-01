@@ -9,6 +9,7 @@ from django.db.models.functions import Coalesce
 from django.contrib import messages
 from adminpanel.forms import LandRecordForm
 from django.core.paginator import Paginator
+from utils.pagination import paginate_queryset  # make sure path is correct
 from adminpanel.models import LandRecord, UserDocument
 from adminpanel.forms import UserDocumentForm
 from django.utils import timezone
@@ -47,10 +48,15 @@ def profile(request):
 @farmer_required
 def land_records(request):
     records = LandRecord.objects.filter(user=request.user)
-    paginator = Paginator(records, 5)
-    page_number = request.GET.get('page')
-    records_paginated = paginator.get_page(page_number)
-    return render(request, 'farmer/land_records.html', {'records': records_paginated})
+    page_obj, records = paginate_queryset(request, records)
+    return render(request, 'farmer/land_records.html', {'records': records , 'page_obj': page_obj})
+
+@login_required
+@farmer_required
+def marketplace_sell(request):
+    listings = ProductListing.objects.filter(user=request.user, is_active=True)
+    page_obj, listings = paginate_queryset(request, listings)
+    return render(request, 'farmer/marketplace_sell.html', {'listings': listings , 'page_obj': page_obj})
 
 @login_required
 @farmer_required
@@ -98,24 +104,18 @@ def cultivation_slots(request):
     ).annotate(
         effective_available=F('available_area_acres') - F('pending_booked')
     ).filter(effective_available__gt=0).order_by('location')
+    page_obj, slots = paginate_queryset(request, slots)
+    return render(request, 'farmer/cultivation_slots.html', {'slots': slots , 'page_obj': page_obj,})
 
-    paginator = Paginator(slots, 10)
-    page_number = request.GET.get('page')
-    slots_paginated = paginator.get_page(page_number)
-    return render(request, 'farmer/cultivation_slots.html', {'slots': slots_paginated})
 
 @login_required
 @farmer_required
 def my_cultivation_bookings(request):
     # Filter bookings for the logged-in farmer
     bookings = CultivationBooking.objects.filter(user=request.user).order_by('-booked_at')
+    page_obj, bookings = paginate_queryset(request, bookings)
+    return render(request, 'farmer/my_cultivation_bookings.html', {'bookings': bookings , 'page_obj': page_obj})
 
-    # Pagination
-    paginator = Paginator(bookings, 10)
-    page_number = request.GET.get('page')
-    bookings_paginated = paginator.get_page(page_number)
-
-    return render(request, 'farmer/my_cultivation_bookings.html', {'bookings': bookings_paginated})
 
 @login_required
 @farmer_required
@@ -149,24 +149,16 @@ def storage_slots(request):
     ).annotate(
         effective_available=F('available_slots') - F('pending_booked')
     ).filter(effective_available__gt=0).order_by('location')
-
-    paginator = Paginator(slots, 10)
-    page_number = request.GET.get('page')
-    slots_paginated = paginator.get_page(page_number)
-    return render(request, 'farmer/storage_slots.html', {'slots': slots_paginated})
+    page_obj, slots = paginate_queryset(request, slots)
+    return render(request, 'farmer/storage_slots.html', {'slots': slots , 'page_obj': page_obj})
 
 @login_required
 @farmer_required
 def my_storage_bookings(request):
     # Filter bookings for the logged-in farmer
     bookings = StorageBooking.objects.filter(user=request.user).order_by('-booked_at')
-
-    # Pagination
-    paginator = Paginator(bookings, 10)
-    page_number = request.GET.get('page')
-    bookings_paginated = paginator.get_page(page_number)
-
-    return render(request, 'farmer/my_storage_bookings.html', {'bookings': bookings_paginated})
+    page_obj, bookings = paginate_queryset(request, bookings)
+    return render(request, 'farmer/my_storage_bookings.html', {'bookings': bookings , 'page_obj': page_obj})
 
 @login_required
 @farmer_required
@@ -203,16 +195,6 @@ def book_storage(request, slot_id):
 
     return render(request, 'farmer/book_storage.html', {'form': form, 'slot': slot})
 
-
-
-@login_required
-@farmer_required
-def marketplace_sell(request):
-    listings = ProductListing.objects.filter(user=request.user, is_active=True)
-    paginator = Paginator(listings, 10)
-    page_number = request.GET.get('page')
-    listings_paginated = paginator.get_page(page_number)
-    return render(request, 'farmer/marketplace_sell.html', {'listings': listings_paginated})
 
 @login_required
 @farmer_required
@@ -255,7 +237,8 @@ def delete_listing(request, listing_id):
 @farmer_required
 def subsidies(request):
     schemes = SubsidyScheme.objects.filter(is_active=True)
-    return render(request, 'farmer/subsidies.html', {'schemes': schemes})
+    page_obj, schemes = paginate_queryset(request, schemes)
+    return render(request, 'farmer/subsidies.html', {'schemes': schemes, 'page_obj': page_obj})
 
 @login_required
 @farmer_required

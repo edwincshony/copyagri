@@ -39,17 +39,12 @@
             </tbody>
         </table>
 
-        <div class="pagination justify-content-center mt-3">
-            {% if bookings.has_previous %}
-                <a href="?page={{ bookings.previous_page_number }}" class="btn btn-outline-primary me-2">&laquo; Prev</a>
-            {% endif %}
-            <span class="align-middle">Page {{ bookings.number }} of {{ bookings.paginator.num_pages }}</span>
-            {% if bookings.has_next %}
-                <a href="?page={{ bookings.next_page_number }}" class="btn btn-outline-primary ms-2">Next &raquo;</a>
-            {% endif %}
-        </div>
+{% include 'partials/pagination.html' %}
     {% else %}
         <div class="alert alert-info">You have no storage bookings yet.</div>
     {% endif %}
 </div>
+
+
+
 {% endblock %}

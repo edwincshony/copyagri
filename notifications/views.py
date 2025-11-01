@@ -50,10 +50,8 @@ def admin_notifications(request):
 def farmer_notifications(request):
     # Farmer-specific, e.g., filter by type
     notifs = Notification.objects.filter(user=request.user).order_by('-created_at')
-    paginator = Paginator(notifs, 10)
-    page_number = request.GET.get('page')
-    notifs_paginated = paginator.get_page(page_number)
-    return render(request, 'notifications/farmer_notifications.html', {'notifications': notifs_paginated})
+    page_obj, notifs = paginate_queryset(request, notifs)
+    return render(request, 'notifications/farmer_notifications.html', {'notifications': notifs , 'page_obj': page_obj})
 
 @login_required
 @user_required
