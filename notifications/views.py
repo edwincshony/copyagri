@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from utils.pagination import paginate_queryset  # make sure path is correct
 from django.contrib import messages
 from django.utils import timezone
 from django.core.paginator import Paginator
@@ -32,12 +33,17 @@ def dashboard(request):
 @login_required
 @admin_required
 def admin_notifications(request):
-    # View all or manage
-    notifs = Notification.objects.all().order_by('-created_at')
-    paginator = Paginator(notifs, 20)
-    page_number = request.GET.get('page')
-    notifs_paginated = paginator.get_page(page_number)
-    return render(request, 'notifications/admin_notifications.html', {'notifications': notifs_paginated})
+    # Get all notifications
+    all_notifications = Notification.objects.all().order_by('-created_at')
+
+    # Use global pagination utility
+    page_obj, notifications = paginate_queryset(request, all_notifications)
+
+    return render(request, 'notifications/admin_notifications.html', {
+        'notifications': notifications,  # paginated list for the table
+        'page_obj': page_obj              # for rendering pagination controls
+    })
+
 
 @login_required
 @user_required
@@ -65,7 +71,20 @@ def mark_read(request, notif_id):
     notif.is_read = True
     notif.save()
     messages.success(request, 'Notification marked as read.')
+
+    # Redirect based on user role
+    user = request.user
+    if hasattr(user, 'role'):  # assuming you have a 'role' field on the user model
+        if user.role == 'farmer':
+            return redirect('notifications:farmer_notifications')
+        elif user.role == 'admin':
+            return redirect('notifications:admin_notifications')
+        elif user.role == 'buyer':
+            return redirect('notifications:buyer_notifications')
+
+    # Default fallback
     return redirect('notifications:dashboard')
+
 
 @login_required
 @admin_required

@@ -45,13 +45,24 @@
                 </ul>
 
                 <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:logout' %}">Logout</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}">Register</a></li>
-                    {% endif %}
-                </ul>
+    {% if user.is_authenticated %}
+        {% if user.role == 'farmer' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'notifications:farmer_notifications' %}">Notifications</a></li>
+        {% elif user.role == 'buyer' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'notifications:buyer_notifications' %}">Notifications</a></li>
+        {% elif user.role == 'admin' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'notifications:admin_notifications' %}">Notifications</a></li>
+        {% else %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'notifications:dashboard' %}">Notifications</a></li>
+        {% endif %}
+
+        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:logout' %}">Logout</a></li>
+    {% else %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}">Register</a></li>
+    {% endif %}
+</ul>
+
             </div>
         </div>
     </nav>

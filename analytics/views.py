@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from utils.pagination import paginate_queryset  # make sure path is correct
 from django.core.paginator import Paginator
 from django.db.models import Count, Sum
 from django.utils import timezone
@@ -33,10 +34,8 @@ def user_required(view_func):
 @admin_required
 def admin_reports(request):
     reports = Report.objects.all().order_by('-generated_at')
-    paginator = Paginator(reports, 10)
-    page_number = request.GET.get('page')
-    reports_paginated = paginator.get_page(page_number)
-    return render(request, 'analytics/admin_reports.html', {'reports': reports_paginated})
+    page_obj, slots = paginate_queryset(request, reports)
+    return render(request, 'analytics/admin_reports.html', {'reports': reports ,'page_obj': page_obj})
 
 @login_required
 @admin_required

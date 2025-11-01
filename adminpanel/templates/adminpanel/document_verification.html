@@ -21,9 +21,9 @@
                 <td>{{ doc.uploaded_at|date:"Y-m-d" }}</td>
                 <td>
                     {% if doc.file %}
-                    <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                        <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
                     {% else %}
-                    N/A
+                        N/A
                     {% endif %}
                 </td>
                 <td>
@@ -35,12 +35,16 @@
                     </form>
                 </td>
             </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">No pending documents.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 
-
+{% include 'partials/pagination.html' %}
 
 <script>
 function confirmAction(form) {

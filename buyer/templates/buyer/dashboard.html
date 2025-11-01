@@ -1,48 +1,79 @@
-{% extends 'accounts/base.html' %} 
+{% extends 'accounts/base.html' %}
 {% block title %}Buyer Dashboard - AgriLeader{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4 text-center">Buyer Dashboard</h2>
+<div class="container-fluid mt-4">
 
-<p style="font-size: 22px; font-weight: bold; color: #2c7a7b; margin: 10px 0;">
-  Hi, {{ user.username }} 👋
-</p>
+    <!-- Page Header -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Buyer Dashboard</h2>
+        <p class="fs-5 fw-semibold text-success mb-0">Hi, {{ user.username }} 👋</p>
+    </div>
 
-    <div class="row g-4">
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-5">
         <div class="col-md-6">
-            <div class="card text-white bg-primary h-100 shadow-sm">
-                <div class="card-body d-flex flex-column justify-content-between">
-                    <div>
-                        <h5 class="card-title">Total Purchases</h5>
-                        <h2 class="card-text">{{ total_purchases }}</h2>
-                    </div>
-                    <a href="{% url 'buyer:my_purchases' %}" class="btn btn-light btn-sm mt-3 align-self-start">View Purchases</a>
+            <div class="card text-white bg-primary shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Purchases</h5>
+                    <h2>{{ total_purchases }}</h2>
+                    <a href="{% url 'buyer:my_purchases' %}" class="btn btn-light btn-sm mt-2">View Purchases</a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-6">
-            <div class="card text-white bg-success h-100 shadow-sm">
-                <div class="card-body d-flex flex-column justify-content-between">
-                    <div>
-                        <h5 class="card-title">Active Bids</h5>
-                        <h2 class="card-text">{{ active_bids }}</h2>
-                    </div>
-                    <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-light btn-sm mt-3 align-self-start">Manage Bids</a>
+            <div class="card text-white bg-success shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Active Bids</h5>
+                    <h2>{{ active_bids }}</h2>
+                    <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-light btn-sm mt-2">Manage Bids</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mt-5 g-3">
-        <div class="col-md-6 d-grid gap-2">
-            <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-primary btn-lg">Browse Marketplace</a>
-            <a href="{% url 'buyer:storage_slots' %}" class="btn btn-warning btn-lg">Book Storage Slot</a>
-            <a href="{% url 'buyer:subsidies' %}" class="btn btn-secondary btn-lg">View Subsidies</a>
+    <!-- Functional Cards -->
+    <div class="row g-4">
+
+        <!-- Marketplace & Bidding -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Marketplace & Bidding</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-outline-primary w-100 mb-2">Browse Marketplace</a>
+                    <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-outline-success w-100 mb-2">Manage Bids</a>
+                    <a href="{% url 'buyer:my_purchases' %}" class="btn btn-outline-info w-100">My Purchases</a>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6 d-grid gap-2">
-            <a href="{% url 'buyer:my_purchases' %}" class="btn btn-info btn-lg">My Purchases</a>
-            <a href="{% url 'notifications:buyer_notifications' %}" class="btn btn-dark btn-lg">Notifications</a>
+
+        <!-- Storage & Subsidies -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Storage & Subsidies</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'buyer:storage_slots' %}" class="btn btn-outline-warning w-100 mb-2">Book Storage Slot</a>
+                    <a href="{% url 'buyer:subsidies' %}" class="btn btn-outline-secondary w-100">View Subsidies</a>
+                </div>
+            </div>
         </div>
+
+        <!-- Notifications -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'notifications:buyer_notifications' %}" class="btn btn-outline-dark w-100">View Notifications</a>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

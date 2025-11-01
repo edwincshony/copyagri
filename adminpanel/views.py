@@ -4,6 +4,7 @@ from farmer.models import CultivationBooking, StorageBooking
 from django.utils import timezone
 from django.contrib import messages
 from django.core.paginator import Paginator
+from utils.pagination import paginate_queryset
 from django.core.mail import send_mail
 from django.conf import settings
 from accounts.models import CustomUser
@@ -35,14 +36,22 @@ def dashboard(request):
     }
     return render(request, 'adminpanel/dashboard.html', context)
 
+from utils.pagination import paginate_queryset  # your global pagination function
+
 @login_required
 @admin_required
 def user_management(request):
-    users = CustomUser.objects.filter(role__in=['farmer', 'buyer']).order_by('-date_joined')
-    paginator = Paginator(users, 10)
-    page_number = request.GET.get('page')
-    users_paginated = paginator.get_page(page_number)
-    return render(request, 'adminpanel/user_management.html', {'users': users_paginated})
+    users_qs = CustomUser.objects.filter(role__in=['farmer', 'buyer']).order_by('-date_joined')
+    
+    # Use global pagination function
+    page_obj, users = paginate_queryset(request, users_qs)
+    
+    return render(request, 'adminpanel/user_management.html', {
+        'users': users,
+        'page_obj': page_obj,  # pass page_obj to template for navigation
+    })
+
+
 
 @login_required
 @admin_required
@@ -76,13 +85,16 @@ def reject_user(request, user_id):
     messages.error(request, f'User {user.username} rejected.')
     return redirect('adminpanel:user_management')
 
+from utils.pagination import paginate_queryset  # adjust import path as needed
+
 @login_required
 @admin_required
 def document_verification(request):
-    docs = UserDocument.objects.filter(status='pending').order_by('-uploaded_at')
-    paginator = Paginator(docs, 10)
-    page_number = request.GET.get('page')
-    docs_paginated = paginator.get_page(page_number)
+    docs_queryset = UserDocument.objects.filter(status='pending').order_by('-uploaded_at')
+    
+    # Use global pagination
+    page_obj, docs_paginated = paginate_queryset(request, docs_queryset)
+    
     if request.method == 'POST':
         doc_id = request.POST.get('doc_id')
         action = request.POST.get('action')
@@ -93,16 +105,26 @@ def document_verification(request):
         doc.save()
         messages.success(request, f'Document {action}d for {doc.user.username}.')
         return redirect('adminpanel:document_verification')
-    return render(request, 'adminpanel/document_verification.html', {'docs': docs_paginated})
+    
+    return render(request, 'adminpanel/document_verification.html', {
+        'docs': docs_paginated,
+        'page_obj': page_obj
+    })
+
+
 
 @login_required
 @admin_required
 def land_records(request):
     records = LandRecord.objects.all().order_by('-created_at')
-    paginator = Paginator(records, 10)
-    page_number = request.GET.get('page')
-    records_paginated = paginator.get_page(page_number)
-    return render(request, 'adminpanel/land_records.html', {'records': records_paginated})
+    page_obj, records_paginated = paginate_queryset(request, records)
+    
+    context = {
+        'records': records_paginated,  # only current page objects
+        'page_obj': page_obj           # for pagination controls
+    }
+    return render(request, 'adminpanel/land_records.html', context)
+
 
 @login_required
 @admin_required
@@ -119,10 +141,8 @@ def verify_land(request, record_id):
 @admin_required
 def storage_slots(request):
     slots = StorageSlot.objects.all().order_by('-created_at')
-    paginator = Paginator(slots, 10)
-    page_number = request.GET.get('page')
-    slots_paginated = paginator.get_page(page_number)
-    return render(request, 'adminpanel/storage_slots.html', {'slots': slots_paginated})
+    page_obj, slots_paginated = paginate_queryset(request, slots)
+    return render(request, 'adminpanel/storage_slots.html', {'slots': slots_paginated, 'page_obj': page_obj})
 
 @login_required
 @admin_required
@@ -165,11 +185,13 @@ def delete_storage_slot(request, slot_id):
 @login_required
 @admin_required
 def cultivation_slots(request):
-    slots = CultivationSlot.objects.all().order_by('-created_at')
-    paginator = Paginator(slots, 10)
-    page_number = request.GET.get('page')
-    slots_paginated = paginator.get_page(page_number)
-    return render(request, 'adminpanel/cultivation_slots.html', {'slots': slots_paginated})
+    slots_qs = CultivationSlot.objects.all().order_by('-created_at')
+    page_obj, slots = paginate_queryset(request, slots_qs)
+    return render(request, 'adminpanel/cultivation_slots.html', {
+        'slots': slots,
+        'page_obj': page_obj,  # required for pagination controls in template
+    })
+
 
 @login_required
 @admin_required
@@ -211,11 +233,19 @@ def delete_cultivation_slot(request, slot_id):
 @login_required
 @admin_required
 def subsidy_schemes(request):
+    # Fetch all schemes (ordered newest first)
     schemes = SubsidyScheme.objects.all().order_by('-added_at')
-    paginator = Paginator(schemes, 10)
-    page_number = request.GET.get('page')
-    schemes_paginated = paginator.get_page(page_number)
-    return render(request, 'adminpanel/subsidy_schemes.html', {'schemes': schemes_paginated})
+    
+    # Apply global pagination
+    page_obj, schemes = paginate_queryset(request, schemes)
+
+    # Render template with both schemes and page_obj
+    context = {
+        'schemes': schemes,
+        'page_obj': page_obj,
+    }
+    return render(request, 'adminpanel/subsidy_schemes.html', context)
+
 
 @login_required
 @admin_required
@@ -315,17 +345,27 @@ def reject_storage_booking(request, booking_id):
 @admin_required
 def cultivation_bookings(request):
     bookings = CultivationBooking.objects.all().order_by('-booked_at')
-    paginator = Paginator(bookings, 10)
-    page_number = request.GET.get('page')
-    bookings_paginated = paginator.get_page(page_number)
-    return render(request, 'adminpanel/cultivation_bookings.html', {'bookings': bookings_paginated})
+    page_obj, bookings_paginated = paginate_queryset(request, bookings)
+
+    context = {
+        'bookings': bookings_paginated,  # only current page objects
+        'page_obj': page_obj             # for pagination controls
+    }
+    return render(request, 'adminpanel/cultivation_bookings.html', context)
+
+
 
 
 @login_required
 @admin_required
 def storage_bookings(request):
-    bookings = StorageBooking.objects.all().order_by('-booked_at')
-    paginator = Paginator(bookings, 10)
-    page_number = request.GET.get('page')
-    bookings_paginated = paginator.get_page(page_number)
-    return render(request, 'adminpanel/storage_bookings.html', {'bookings': bookings_paginated})
+    bookings_qs = StorageBooking.objects.all().order_by('-booked_at')
+    page_obj, bookings = paginate_queryset(request, bookings_qs)
+    
+    return render(
+        request, 
+        'adminpanel/storage_bookings.html', 
+        {'bookings': bookings, 'page_obj': page_obj}
+    )
+
+

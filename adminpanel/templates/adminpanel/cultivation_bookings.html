@@ -41,9 +41,16 @@
                     <td>
                         {% if booking.status == "pending" %}
                             <a href="{% url 'adminpanel:approve_cultivation_booking' booking.id %}" 
-                               class="btn btn-sm btn-success">Approve</a>
+                               class="btn btn-sm btn-success"
+                               onclick="return confirm('Are you sure you want to approve this booking?');">
+                               Approve
+                            </a>
+
                             <a href="{% url 'adminpanel:reject_cultivation_booking' booking.id %}" 
-                               class="btn btn-sm btn-danger">Reject</a>
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('Are you sure you want to reject this booking?');">
+                               Reject
+                            </a>
                         {% else %}
                             <button class="btn btn-sm btn-outline-secondary" disabled>No Actions</button>
                         {% endif %}
@@ -53,15 +60,8 @@
             </tbody>
         </table>
 
-        <div class="pagination justify-content-center mt-3">
-            {% if bookings.has_previous %}
-                <a href="?page={{ bookings.previous_page_number }}" class="btn btn-outline-primary me-2">&laquo; Prev</a>
-            {% endif %}
-            <span class="align-middle">Page {{ bookings.number }} of {{ bookings.paginator.num_pages }}</span>
-            {% if bookings.has_next %}
-                <a href="?page={{ bookings.next_page_number }}" class="btn btn-outline-primary ms-2">Next &raquo;</a>
-            {% endif %}
-        </div>
+        {% include 'partials/pagination.html' %}  {# Global pagination template #}
+
     {% else %}
         <div class="alert alert-info">No bookings found.</div>
     {% endif %}

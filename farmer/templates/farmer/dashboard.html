@@ -1,58 +1,96 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Farmer Dashboard - AgriLeader{% endblock %}
 {% block content %}
-<h2>Farmer Dashboard</h2>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 class="my-3">Farmer Dashboard</h2>
+            <p class="fs-5 fw-bold text-success">Hi, {{ user.username }} 👋</p>
+        </div>
+    </div>
 
-<p style="font-size: 22px; font-weight: bold; color: #2c7a7b; margin: 10px 0;">
-  Hi, {{ user.username }} 👋
-</p>
+    <!-- Summary Cards -->
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Pending Bookings</h5>
+                    <h2>{{ pending_bookings }}</h2>
+                    {% for booking in bookings %}
+                        <a href="{% url 'farmer:booking_detail' booking_id=booking.id %}" class="btn btn-light btn-sm mt-2">
+                            View Booking {{ booking.id }}
+                        </a>
+                    {% empty %}
+                        <p class="mt-2 text-light small">No pending bookings</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
+        <div class="col-md-4">
+            <div class="card text-white bg-success h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Active Listings</h5>
+                    <h2>{{ active_listings }}</h2>
+                    <a href="{% url 'farmer:marketplace_sell' %}" class="btn btn-light btn-sm mt-2">Manage Listings</a>
+                </div>
+            </div>
+        </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5>Pending Bookings</h5>
-                <h2>{{ pending_bookings }}</h2>
-{% for booking in bookings %}
-    <a href="{% url 'farmer:booking_detail' booking_id=booking.id %}" class="btn btn-light btn-sm">
-        View Booking {{ booking.id }}
-    </a>
-{% endfor %}
+        <div class="col-md-4">
+            <div class="card text-white bg-info h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Available Schemes</h5>
+                    <h2>{{ schemes_count|default:0 }}</h2>
+                    <a href="{% url 'farmer:subsidies' %}" class="btn btn-light btn-sm mt-2">View Schemes</a>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5>Active Listings</h5>
-                <h2>{{ active_listings }}</h2>
-                <a href="{% url 'farmer:marketplace_sell' %}" class="btn btn-light btn-sm">Manage Listings</a>
+
+    <!-- Management Cards -->
+    <div class="row mt-5 g-3">
+        <!-- Land & Document Management -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Land & Document Management</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'farmer:land_records' %}" class="btn btn-outline-info w-100 mb-2">Manage Land Records</a>
+                    <a href="{% url 'farmer:upload_document' %}" class="btn btn-outline-secondary w-100">Upload Documents</a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <h5>Available Schemes</h5>
-                <h2>{{ schemes_count|default:0 }}</h2>
-                <a href="{% url 'farmer:subsidies' %}" class="btn btn-light btn-sm">View Schemes</a>
+
+        <!-- Bookings & Slots -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Cultivation & Storage</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'farmer:my_cultivation_bookings' %}" class="btn btn-outline-success w-100 mb-2">My Cultivation Bookings</a>
+                    <a href="{% url 'farmer:cultivation_slots' %}" class="btn btn-outline-success w-100 mb-2">Book Cultivation Slot</a>
+                    <a href="{% url 'farmer:my_storage_bookings' %}" class="btn btn-outline-warning w-100">My Storage Bookings</a>
+                    <a href="{% url 'farmer:storage_slots' %}" class="btn btn-outline-warning w-100">Book Storage Slot</a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights & Notifications -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Analytics & Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'farmer:analytics' %}" class="btn btn-outline-secondary w-100 mb-2">Analytics & Guidance</a>
+                    <a href="{% url 'notifications:farmer_notifications' %}" class="btn btn-outline-dark w-100">Notifications</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
-<div class="row mt-4">
-    <div class="col-md-6">
-        <a href="{% url 'farmer:my_cultivation_bookings' %}" class="btn btn-success w-100 mb-2">See Cultivation Slot</a>
-        <a href="{% url 'farmer:my_storage_bookings' %}" class="btn btn-warning w-100 mb-2">See Storage Slot</a>
-        <a href="{% url 'farmer:land_records' %}" class="btn btn-info w-100 mb-2">Manage Land Records</a>
-        <a href="{% url 'farmer:upload_document' %}" class="btn btn-secondary w-100 mb-2">Upload Documents</a>
-    </div>
-    <div class="col-md-6">
-
-        <a href="{% url 'farmer:analytics' %}" class="btn btn-secondary w-100 mb-2">Analytics & Guidance</a>
-        <a href="{% url 'notifications:farmer_notifications' %}" class="btn btn-dark w-100">Notifications</a>
-    </div>
-</div>
-
 {% endblock %}

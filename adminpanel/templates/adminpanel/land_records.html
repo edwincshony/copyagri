@@ -24,9 +24,9 @@
                 <td>{{ record.location }}</td>
                 <td>
                     {% if record.document %}
-                    <a href="{{ record.document.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                        <a href="{{ record.document.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
                     {% else %}
-                    N/A
+                        N/A
                     {% endif %}
                 </td>
                 <td>{{ record.is_verified|yesno:"Yes,No" }}</td>
@@ -39,10 +39,14 @@
                     {% endif %}
                 </td>
             </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No land records found.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 
-
+{% include 'partials/pagination.html' %}
 {% endblock %}
