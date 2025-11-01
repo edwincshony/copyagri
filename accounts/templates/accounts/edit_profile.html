@@ -1,26 +1,44 @@
 {% extends 'accounts/base.html' %}
 {% load crispy_forms_tags %}
 {% block title %}Edit Profile - AgriLeader{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <h2>Edit Profile</h2>
+        <h2 class="mb-4">Edit Profile</h2>
+
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form|crispy }}
-            <button type="submit" class="btn btn-success">Update</button>
-{% if user.role == 'farmer' %}
-    <a href="{% url 'farmer:dashboard' %}" class="btn btn-secondary">Cancel</a>
 
-{% elif user.role == 'buyer' %}
-    <a href="{% url 'buyer:dashboard' %}" class="btn btn-secondary">Cancel</a>
+            {# Render individual fields for better control (optional) #}
+            {{ form.first_name|as_crispy_field }}
+            {{ form.last_name|as_crispy_field }}
+            {{ form.email|as_crispy_field }}
+            {{ form.mobile|as_crispy_field }}
+            {{ form.address|as_crispy_field }}
+            {{ form.profile_picture|as_crispy_field }}
 
-{% elif user.role == 'admin' %}
-    <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-secondary">Cancel</a>
+            {# Show buyer_type only if the user is a buyer #}
+            {% if user.role == 'buyer' and form.buyer_type %}
+                {{ form.buyer_type|as_crispy_field }}
+            {% endif %}
 
-{% else %}
-    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
-{% endif %}
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success">Update</button>
+
+                {% if user.role == 'farmer' %}
+                    <a href="{% url 'farmer:dashboard' %}" class="btn btn-secondary">Cancel</a>
+
+                {% elif user.role == 'buyer' %}
+                    <a href="{% url 'buyer:dashboard' %}" class="btn btn-secondary">Cancel</a>
+
+                {% elif user.role == 'admin' %}
+                    <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-secondary">Cancel</a>
+
+                {% else %}
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+                {% endif %}
+            </div>
         </form>
     </div>
 </div>

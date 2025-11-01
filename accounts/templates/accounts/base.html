@@ -30,8 +30,6 @@
 
                         {% elif user.role == 'buyer' %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'buyer:dashboard' %}">Dashboard</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">Marketplace Buy</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">Storage Booking</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:profile' %}">My Profile</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:change_password' %}">Change Password</a></li>
 

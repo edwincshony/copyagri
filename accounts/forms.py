@@ -58,6 +58,11 @@ class CustomUserAuthenticationForm(AuthenticationForm):
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Login', css_class='btn btn-primary'))
 
+from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from .models import CustomUser
+
 class CustomUserChangeForm(forms.ModelForm):
     class Meta:
         model = CustomUser
@@ -67,7 +72,13 @@ class CustomUserChangeForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
+
+        # Hide 'buyer_type' for non-buyers
+        if user and user.role != 'buyer':
+            self.fields.pop('buyer_type', None)
+
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Update Profile', css_class='btn btn-primary'))
 
@@ -76,6 +87,7 @@ class CustomUserChangeForm(forms.ModelForm):
         if not mobile.isdigit() or len(mobile) != 10 or mobile[0] not in '6789':
             raise forms.ValidationError('Mobile must be exactly 10 digits starting with 6, 7, 8, or 9.')
         return mobile
+
 
 class CustomUserPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):

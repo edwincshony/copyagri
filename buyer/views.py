@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from utils.pagination import paginate_queryset  # make sure path is correct
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -49,11 +50,9 @@ def profile(request):
 def marketplace_buy(request):
     # Filter by buyer_type if needed (wholesaler bulk, etc.)
     listings = ProductListing.objects.filter(is_active=True).order_by('-created_at')
+    page_obj, listings = paginate_queryset(request, listings)
     # Location filter placeholder: if request.GET.get('location'): listings = listings.filter(location__icontains=...)
-    paginator = Paginator(listings, 10)
-    page_number = request.GET.get('page')
-    listings_paginated = paginator.get_page(page_number)
-    return render(request, 'buyer/marketplace_buy.html', {'listings': listings_paginated})
+    return render(request, 'buyer/marketplace_buy.html', {'listings': listings,     'page_obj': page_obj})
 
 from django.utils import timezone
 from buyer.models import Purchase
@@ -191,19 +190,15 @@ def make_bid_payment(request, bid_id):
 @buyer_required
 def my_purchases(request):
     purchases = Purchase.objects.filter(buyer=request.user).order_by('-purchase_date')
-    paginator = Paginator(purchases, 10)
-    page_number = request.GET.get('page')
-    purchases_paginated = paginator.get_page(page_number)
-    return render(request, 'buyer/my_purchases.html', {'purchases': purchases_paginated})
+    page_obj, purchases = paginate_queryset(request, purchases)
+    return render(request, 'buyer/my_purchases.html', {'purchases': purchases , 'page_obj': page_obj})
 
 @login_required
 @buyer_required
 def storage_slots(request):
     slots = StorageSlot.objects.filter(available_slots__gt=0, is_active=True).order_by('location')
-    paginator = Paginator(slots, 10)
-    page_number = request.GET.get('page')
-    slots_paginated = paginator.get_page(page_number)
-    return render(request, 'buyer/storage_slots.html', {'slots': slots_paginated})
+    page_obj, slots = paginate_queryset(request, slots)
+    return render(request, 'buyer/storage_slots.html', {'slots': slots, 'page_obj': page_obj})
 
 @login_required
 @buyer_required
@@ -226,7 +221,8 @@ def book_storage(request, slot_id):
 @buyer_required
 def subsidies(request):
     schemes = SubsidyScheme.objects.filter(is_active=True)
-    return render(request, 'buyer/subsidies.html', {'schemes': schemes})
+    page_obj, schemes = paginate_queryset(request, schemes)
+    return render(request, 'buyer/subsidies.html', {'schemes': schemes, 'page_obj': page_obj})
 
 @login_required
 @buyer_required
