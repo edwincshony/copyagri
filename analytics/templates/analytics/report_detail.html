@@ -1,30 +1,55 @@
 {% extends 'accounts/base.html' %}
-{% block title %}{{ report.title }} - AgriLeader{% endblock %}
 {% block content %}
-<h2>{{ report.title }}</h2>
-<p><strong>Type:</strong> {{ report.get_report_type_display }}</p>
-<p><strong>Period:</strong> {{ report.start_date }} to {{ report.end_date }}</p>
-<p><strong>Summary:</strong> {{ report.data_summary }}</p>
-{% if chart_data %}
-    <h3>Chart: Data Visualization</h3>
-    <canvas id="reportChart" width="400" height="200"></canvas>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctx = document.getElementById('reportChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [{% for row in chart_data %}'{{ row.0 }}',{% endfor %}],
-                datasets: [{
-                    label: 'Count',
-                    data: [{% for row in chart_data %}{{ row.1 }},{% endfor %}],
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }]
-            },
-            options: { scales: { y: { beginAtZero: true } } }
-        });
-    </script>
-{% endif %}
-<a href="{% url 'analytics:admin_reports' %}" class="btn btn-secondary">Back</a>
+<h3>{{ report.title }}</h3>
+<p>Type: {{ report.get_report_type_display }}</p>
+<p>Period: {{ report.start_date }} - {{ report.end_date }}</p>
+<p>Generated on: {{ report.generated_at }}</p>
+
+<h5>Summary:</h5>
+<pre>{{ report.data_summary|json_script:"report-data" }}</pre>
+{{ report.chart_data|json_script:"chart-data" }}
+<canvas id="reportChart" height="150"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function(){
+  const raw = document.getElementById('chart-data')?.textContent;
+  if (!raw) return;
+
+  const chartData = JSON.parse(raw);
+  const labels = chartData.labels || [];
+  const data = chartData.data || [];
+
+  // If all zeros, pass empty dataset so no bars render but axes visible
+  const allZero = data.length === 0 || data.every(v => Number(v) === 0);
+  const displayData = allZero ? [] : data;
+
+  new Chart(document.getElementById('reportChart'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Metrics',
+        data: displayData,
+        backgroundColor: 'rgba(54,162,235,0.6)',
+        borderColor: 'rgba(54,162,235,1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          suggestedMax: allZero ? 1 : undefined
+        }
+      }
+    }
+  });
+})();
+</script>
+
+
+
 {% endblock %}

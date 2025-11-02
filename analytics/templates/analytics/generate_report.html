@@ -1,19 +1,10 @@
 {% extends 'accounts/base.html' %}
 {% load crispy_forms_tags %}
-
-{% block title %}Generate Report - AgriLeader{% endblock %}
-
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Generate Analytics Report</h2>
-
-    <form method="post" class="mb-3">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <div class="mt-3">
-            <button type="submit" class="btn btn-success me-2">Generate</button>
-            <a href="{% url 'analytics:admin_reports' %}" class="btn btn-secondary">Back</a>
-        </div>
-    </form>
-</div>
+<h3>Create Custom Report</h3>
+<form method="post">
+  {% csrf_token %}
+  {{ form|crispy }}
+  <button type="submit" class="btn btn-primary mt-3">Generate Report</button>
+</form>
 {% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'accounts/base.html' %}
+{% block content %}
+<h2 class="mb-3">Analytics Dashboard</h2>
+
+<form method="get" action="{% url 'analytics:generate_report' %}" class="mb-4">
+  <button class="btn btn-success">Generate New Report</button>
+</form>
+
+<div class="card shadow-sm p-3">
+  <h4>{{ report.title }}</h4>
+  <p><strong>Period:</strong> {{ report.start_date }} → {{ report.end_date }}</p>
+  <p><strong>Generated:</strong> {{ report.generated_at|date:"Y-m-d H:i" }}</p>
+
+  <h5>Summary:</h5>
+  <pre>{{ report.data_summary|safe }}</pre>
+
+  {{ report.chart_data|json_script:"chart-data" }}
+
+  <canvas id="reportChart" height="100"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+
+if (chartData && chartData.labels) {
+  new Chart(document.getElementById('reportChart'), {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Metrics',
+        data: chartData.data,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+}
+</script>
+{% endblock %}

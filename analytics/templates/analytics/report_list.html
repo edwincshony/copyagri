@@ -1,0 +1,35 @@
+{% extends 'accounts/base.html' %}
+{% block content %}
+<h2 class="mb-3">All Reports</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Type</th>
+      <th>Start Date</th>
+      <th>End Date</th>
+      <th>Generated At</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for report in reports %}
+    <tr>
+      <td>{{ report.title }}</td>
+      <td>{{ report.get_report_type_display }}</td>
+      <td>{{ report.start_date }}</td>
+      <td>{{ report.end_date }}</td>
+      <td>{{ report.generated_at|date:"Y-m-d H:i" }}</td>
+      <td>
+        <a href="{% url 'analytics:report_detail' report.pk %}" class="btn btn-sm btn-primary">
+          View
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" class="text-center text-muted">No reports generated yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -36,7 +36,8 @@
 
                         {% elif user.role == 'admin' %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'adminpanel:dashboard' %}">Dashboard</a></li>
-                            <li class="nav-item"><a class="nav-link" href="{% url 'analytics:admin_reports' %}">Analytics</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'analytics:dashboard'%}">Analytics</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'analytics:report_list' %}">list</a></li>
                             {# No Profile link for admin #}
                         {% endif %}
                     {% endif %}
