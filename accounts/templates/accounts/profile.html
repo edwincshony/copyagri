@@ -8,20 +8,20 @@
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Your Profile</h4>
-
                 </div>
+
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-4">
                         {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" 
+                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
                                  class="rounded-circle me-3" width="120" height="120">
                         {% else %}
                             <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white"
-                                 style="width: 120px; height: 120px;">
-                                <i class="bi bi-person fs-1"></i>
+                                 style="width: 120px; height: 120px; font-size: 3rem;">
+                                {{ user.first_name|default:user.username|slice:":1"|upper }}
                             </div>
                         {% endif %}
-                        <div>
+                        <div class="ms-3">
                             <h5 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
                             <p class="text-muted mb-0">@{{ user.username }}</p>
                         </div>
@@ -66,6 +66,7 @@
                         </table>
                     </div>
                 </div>
+
                 <div class="card-footer bg-light text-end">
                     <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-key"></i> Change Password

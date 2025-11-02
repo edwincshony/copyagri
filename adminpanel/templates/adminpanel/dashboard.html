@@ -1,84 +1,146 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Admin Dashboard - AgriLeader{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <h2 class="my-3">Admin Dashboard</h2>
-        </div>
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Admin Dashboard</h2>
+        <p class="text-muted">Manage users, records, and marketplace activities efficiently.</p>
     </div>
 
     <!-- Statistics Summary Cards -->
-    <div class="row g-3">
+    <div class="row g-3 mb-5">
         <div class="col-md-3">
-            <div class="card text-white bg-primary h-100">
+            <div class="card text-white bg-primary h-100 shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title">Total Users</h5>
-                    <h2>{{ total_users }}</h2>
-                    <a href="{% url 'adminpanel:user_management' %}" class="btn btn-light btn-sm mt-2">Manage Users</a>
+                    <h2 class="fw-bold">{{ total_users }}</h2>
+                    <a href="{% url 'adminpanel:user_management' %}" class="btn btn-light btn-sm mt-2">
+                        Manage Users
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
-            <div class="card text-white bg-warning h-100">
+            <div class="card text-white bg-warning h-100 shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title">Pending Approvals</h5>
-                    <h2>{{ pending_approvals }}</h2>
-                    <a href="{% url 'adminpanel:user_management' %}" class="btn btn-light btn-sm mt-2">View Approvals</a>
+                    <h2 class="fw-bold">{{ pending_approvals }}</h2>
+                    <a href="{% url 'adminpanel:user_management' %}" class="btn btn-light btn-sm mt-2">
+                        View Approvals
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
-            <div class="card text-white bg-info h-100">
+            <div class="card text-white bg-info h-100 shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title">Pending Documents</h5>
-                    <h2>{{ pending_docs }}</h2>
-                    <a href="{% url 'adminpanel:document_verification' %}" class="btn btn-light btn-sm mt-2">Verify Documents</a>
+                    <h2 class="fw-bold">{{ pending_docs }}</h2>
+                    <a href="{% url 'adminpanel:document_verification' %}" class="btn btn-light btn-sm mt-2">
+                        Verify Documents
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
-            <div class="card text-white bg-success h-100">
+            <div class="card text-white bg-success h-100 shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title">Active Schemes</h5>
-                    <h2>{{ total_schemes }}</h2>
-                    <a href="{% url 'adminpanel:subsidy_schemes' %}" class="btn btn-light btn-sm mt-2">Manage Schemes</a>
+                    <h2 class="fw-bold">{{ total_schemes }}</h2>
+                    <a href="{% url 'adminpanel:subsidy_schemes' %}" class="btn btn-light btn-sm mt-2">
+                        Manage Schemes
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Feature Group Cards -->
-    <div class="row mt-5 g-3">
-        <!-- User & Document Management -->
+    <!-- Management Section -->
+    <div class="row g-4">
 
-        <!-- Land, Cultivation & Storage Management -->
+
+
+        <!-- Cultivation Management -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Land, Cultivation & Storage</h5>
+                    <h5 class="mb-0">Cultivation Management</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'adminpanel:land_records' %}" class="btn btn-outline-info w-100 mb-2">Land Records</a>
-                    <a href="{% url 'adminpanel:cultivation_bookings' %}" class="btn btn-outline-primary w-100 mb-2">Cultivation Bookings</a>
-                    <a href="{% url 'adminpanel:storage_bookings' %}" class="btn btn-outline-secondary w-100 mb-2">Storage Bookings</a>
-                    <a href="{% url 'adminpanel:cultivation_slots' %}" class="btn btn-outline-success w-100 mb-2">Cultivation Slots Management</a>
-                    <a href="{% url 'adminpanel:storage_slots' %}" class="btn btn-outline-success w-100">Storage Slots Management</a>
+                    <p class="text-muted mb-3">Monitor bookings and manage cultivation slot scheduling.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'adminpanel:cultivation_bookings' %}" class="btn btn-outline-success">
+                            Cultivation Bookings
+                        </a>
+                        <a href="{% url 'adminpanel:cultivation_slots' %}" class="btn btn-outline-success">
+                            Cultivation Slot Management
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Government Schemes & Marketplace -->
+        <!-- Storage Management -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">Marketplace</h5>
+                    <h5 class="mb-0">Storage Management</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'adminpanel:marketplace_monitoring' %}" class="btn btn-outline-dark w-100">Marketplace Monitoring</a>
+                    <p class="text-muted mb-3">Manage storage facility slots and booking records.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'adminpanel:storage_bookings' %}" class="btn btn-outline-warning">
+                            Storage Bookings
+                        </a>
+                        <a href="{% url 'adminpanel:storage_slots' %}" class="btn btn-outline-warning">
+                            Storage Slot Management
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+
+
+                <!-- Land Records -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Land Records Management</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Oversee and update registered land records.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'adminpanel:land_records' %}" class="btn btn-outline-primary">
+                            Manage Land Records
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Marketplace Monitoring -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Marketplace Monitoring</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Track and manage marketplace listings and transactions.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'adminpanel:marketplace_monitoring' %}" class="btn btn-outline-info">
+                            Open Marketplace Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

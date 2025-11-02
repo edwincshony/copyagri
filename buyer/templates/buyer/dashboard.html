@@ -1,5 +1,6 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Buyer Dashboard - AgriLeader{% endblock %}
+
 {% block content %}
 <div class="container-fluid mt-4">
 
@@ -11,22 +12,33 @@
 
     <!-- Summary Cards -->
     <div class="row g-3 mb-5">
+        <!-- Total Purchases -->
         <div class="col-md-6">
             <div class="card text-white bg-primary shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title">Total Purchases</h5>
-                    <h2>{{ total_purchases }}</h2>
-                    <a href="{% url 'buyer:my_purchases' %}" class="btn btn-light btn-sm mt-2">View Purchases</a>
+                    <h5 class="card-title mb-3">Total Purchases</h5>
+                    <h2 class="fw-bold">{{ total_purchases }}</h2>
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-light btn-sm">
+                            Browse Marketplace
+                        </a>
+                        <a href="{% url 'buyer:my_purchases' %}" class="btn btn-light btn-sm">
+                            View Purchases
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Active Bids -->
         <div class="col-md-6">
             <div class="card text-white bg-success shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title">Active Bids</h5>
-                    <h2>{{ active_bids }}</h2>
-                    <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-light btn-sm mt-2">Manage Bids</a>
+                    <h5 class="card-title mb-3">Active Bids</h5>
+                    <h2 class="fw-bold">{{ active_bids }}</h2>
+                    <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-light btn-sm mt-3">
+                        Manage Bids
+                    </a>
                 </div>
             </div>
         </div>
@@ -35,19 +47,6 @@
     <!-- Functional Cards -->
     <div class="row g-4">
 
-        <!-- Marketplace & Bidding -->
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Marketplace & Bidding</h5>
-                </div>
-                <div class="card-body">
-                    <a href="{% url 'buyer:marketplace_buy' %}" class="btn btn-outline-primary w-100 mb-2">Browse Marketplace</a>
-                    <a href="{% url 'buyer:my_purchases' %}" class="btn btn-outline-info w-100">My Purchases</a>
-                </div>
-            </div>
-        </div>
-
         <!-- Storage & Subsidies -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
@@ -55,12 +54,34 @@
                     <h5 class="mb-0">Storage & Subsidies</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'buyer:storage_slots' %}" class="btn btn-outline-warning w-100 mb-2">Book Storage Slot</a>
-                    <a href="{% url 'buyer:subsidies' %}" class="btn btn-outline-secondary w-100">View Subsidies</a>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'buyer:storage_slots' %}" class="btn btn-outline-warning">
+                            Book Storage Slot
+                        </a>
+                        <a href="{% url 'buyer:subsidies' %}" class="btn btn-outline-secondary">
+                            View Subsidies
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Analytics -->
+        {% comment %} <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Analytics & Reports</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Track your buying patterns and market insights.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'buyer:analytics' %}" class="btn btn-outline-secondary">
+                            View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div> {% endcomment %}
 
     </div>
 </div>
