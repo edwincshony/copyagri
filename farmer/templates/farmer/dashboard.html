@@ -1,96 +1,141 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Farmer Dashboard - AgriLeader{% endblock %}
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <h2 class="my-3">Farmer Dashboard</h2>
-            <p class="fs-5 fw-bold text-success">Hi, {{ user.username }} 👋</p>
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="row mb-4 text-center">
+        <div class="col-12">
+            <h2 class="fw-bold">Farmer Dashboard</h2>
+            <p class="fs-5 fw-semibold text-success mb-0">Hi, {{ user.username }} 👋</p>
         </div>
     </div>
 
     <!-- Summary Cards -->
-    <div class="row g-3">
+    <div class="row g-4 mb-5">
+        <!-- Pending Bookings -->
         <div class="col-md-4">
-            <div class="card text-white bg-primary h-100 shadow-sm">
+            <div class="card text-white bg-primary shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title">Pending Bookings</h5>
-                    <h2>{{ pending_bookings }}</h2>
+                    <h5 class="card-title mb-3">Pending Bookings</h5>
+                    <h2 class="fw-bold">{{ pending_bookings }}</h2>
                     {% for booking in bookings %}
                         <a href="{% url 'farmer:booking_detail' booking_id=booking.id %}" class="btn btn-light btn-sm mt-2">
                             View Booking {{ booking.id }}
                         </a>
                     {% empty %}
-                        <p class="mt-2 text-light small">No pending bookings</p>
+                        <p class="mt-2 small text-light">No pending bookings</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
+        <!-- Active Listings -->
         <div class="col-md-4">
-            <div class="card text-white bg-success h-100 shadow-sm">
+            <div class="card text-white bg-success shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title">Active Listings</h5>
-                    <h2>{{ active_listings }}</h2>
+                    <h5 class="card-title mb-3">Active Listings</h5>
+                    <h2 class="fw-bold">{{ active_listings }}</h2>
                     <a href="{% url 'farmer:marketplace_sell' %}" class="btn btn-light btn-sm mt-2">Manage Listings</a>
                 </div>
             </div>
         </div>
 
+        <!-- Schemes -->
         <div class="col-md-4">
-            <div class="card text-white bg-info h-100 shadow-sm">
+            <div class="card text-white bg-info shadow-sm h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title">Available Schemes</h5>
-                    <h2>{{ schemes_count|default:0 }}</h2>
+                    <h5 class="card-title mb-3">Available Schemes</h5>
+                    <h2 class="fw-bold">{{ schemes_count|default:0 }}</h2>
                     <a href="{% url 'farmer:subsidies' %}" class="btn btn-light btn-sm mt-2">View Schemes</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Management Cards -->
-    <div class="row mt-5 g-3">
-        <!-- Land & Document Management -->
+    <!-- Management & Operations Section -->
+    <div class="row g-4">
+        
+
+
+        <!-- Cultivation -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Cultivation Management</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Book new cultivation slots or view existing bookings.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'farmer:cultivation_slots' %}" class="btn btn-outline-success">
+                            Book Cultivation Slot
+                        </a>
+                        <a href="{% url 'farmer:my_cultivation_bookings' %}" class="btn btn-outline-success">
+                            My Cultivation Bookings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Storage Management</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Reserve storage slots and manage your bookings easily.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'farmer:storage_slots' %}" class="btn btn-outline-warning">
+                            Book Storage Slot
+                        </a>
+                        <a href="{% url 'farmer:my_storage_bookings' %}" class="btn btn-outline-warning">
+                            My Storage Bookings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+                <!-- Land & Document Management -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Land & Document Management</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'farmer:land_records' %}" class="btn btn-outline-info w-100 mb-2">Manage Land Records</a>
-                    <a href="{% url 'farmer:upload_document' %}" class="btn btn-outline-secondary w-100">Upload Documents</a>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'farmer:land_records' %}" class="btn btn-outline-primary">
+                            Manage Land Records
+                        </a>
+                        <a href="{% url 'farmer:upload_document' %}" class="btn btn-outline-secondary">
+                            Upload Documents
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bookings & Slots -->
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Cultivation & Storage</h5>
-                </div>
-                <div class="card-body">
-                    <a href="{% url 'farmer:my_cultivation_bookings' %}" class="btn btn-outline-success w-100 mb-2">My Cultivation Bookings</a>
-                    <a href="{% url 'farmer:cultivation_slots' %}" class="btn btn-outline-success w-100 mb-2">Book Cultivation Slot</a>
-                    <a href="{% url 'farmer:my_storage_bookings' %}" class="btn btn-outline-warning w-100">My Storage Bookings</a>
-                    <a href="{% url 'farmer:storage_slots' %}" class="btn btn-outline-warning w-100">Book Storage Slot</a>
 
-                </div>
-            </div>
-        </div>
-
-        <!-- Insights & Notifications -->
+        <!-- Analytics -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Analytics & Notifications</h5>
+                    <h5 class="mb-0">Analytics & Guidance</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'farmer:analytics' %}" class="btn btn-outline-secondary w-100 mb-2">Analytics & Guidance</a>
-                    <a href="{% url 'notifications:farmer_notifications' %}" class="btn btn-outline-dark w-100">Notifications</a>
+                    <p class="text-muted mb-3">Analyze your performance and get actionable insights.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'farmer:analytics' %}" class="btn btn-outline-secondary">
+                            View Analytics
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}

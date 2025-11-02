@@ -27,7 +27,7 @@ def admin_required(view_func):
 @admin_required
 def dashboard(request):
     context = {
-        'total_users': CustomUser.objects.exclude(is_superuser=True).count(),
+        'total_users': CustomUser.objects.filter(is_superuser=False, is_approved=True).count(),
         'pending_approvals': CustomUser.objects.filter(is_approved=False, role__in=['farmer', 'buyer']).count(),
         'pending_docs': UserDocument.objects.filter(status='pending').count(),
         'total_storage_slots': StorageSlot.objects.filter(is_active=True).count(),
