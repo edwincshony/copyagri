@@ -7,11 +7,32 @@
     <a href="{% url 'farmer:create_listing' %}" class="btn btn-primary">+ Create New Listing</a>
 </div>
 
-{% if total_revenue %}
-<div class="alert alert-success">
-    <strong>Total Revenue from Past Bids:</strong> ₹{{ total_revenue }}
+<!-- Revenue Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">Completed Sales Revenue</h5>
+                <h3 class="text-success">₹{{ total_revenue|floatformat:2 }}</h3>
+                <div class="small text-muted">
+                    <div>Completed Bids: ₹{{ total_bid_revenue|floatformat:2 }}</div>
+                    <div>Completed Direct Sales: ₹{{ total_regular_revenue|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">Pending Payments</h5>
+                <h3 class="text-warning">₹{{ total_pending_revenue|floatformat:2 }}</h3>
+                <div class="small text-muted">
+                    <div>These payments are awaiting completion</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-{% endif %}
 
 <ul class="nav nav-tabs" id="listingTabs" role="tablist">
   <li class="nav-item">
@@ -44,6 +65,24 @@
               {% if listing.description %}<strong>Description:</strong> {{ listing.description|truncatewords:20 }}<br>{% endif %}
               <strong>Bidding ends at:</strong> {{ listing.bid_end_time|date:"d M Y H:i" }}<br>
             </p>
+            <div class="border-top pt-2 mt-2">
+              <h6>Revenue Details</h6>
+              <div class="small">
+                <div>Available Quantity: {{ listing.available_quantity }}</div>
+                <div class="mt-2">
+                  <strong>Completed Payments:</strong>
+                  <div>Bid Revenue: ₹{{ listing.bid_revenue|floatformat:2 }}</div>
+                  <div>Direct Sales: ₹{{ listing.regular_sales_revenue|floatformat:2 }}</div>
+                  <div class="fw-bold">Total Revenue: ₹{{ listing.total_revenue|floatformat:2 }}</div>
+                </div>
+                {% if listing.pending_revenue > 0 %}
+                <div class="mt-2">
+                  <strong class="text-warning">Pending Payments:</strong>
+                  <div>₹{{ listing.pending_revenue|floatformat:2 }}</div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
             <div class="card-actions">
               <a href="{% url 'farmer:edit_listing' listing.id %}" class="btn btn-sm btn-warning">Edit</a>
               <a href="{% url 'farmer:delete_listing' listing.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
@@ -85,6 +124,14 @@
                 {% endif %}
               {% endwith %}
             </p>
+            <div class="border-top pt-2 mt-2">
+              <h6>Final Revenue Summary</h6>
+              <div class="small">
+                <div>Bid Revenue: ₹{{ listing.bid_revenue|floatformat:2 }}</div>
+                <div>Direct Sales: ₹{{ listing.regular_sales_revenue|floatformat:2 }}</div>
+                <div class="fw-bold mt-1">Total: ₹{{ listing.total_revenue|floatformat:2 }}</div>
+              </div>
+            </div>
             <div class="card-actions">
               <a href="{% url 'farmer:edit_listing' listing.id %}" class="btn btn-sm btn-warning">Edit</a>
               <a href="{% url 'farmer:delete_listing' listing.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>

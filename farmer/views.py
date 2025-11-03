@@ -56,21 +56,35 @@ def land_records(request):
 def marketplace_sell(request):
     listings = ProductListing.objects.filter(user=request.user).order_by('-created_at')
 
-    ongoing = listings.filter(bid_end_time__gt=timezone.now())  # still open
-    past = listings.filter(bid_end_time__lte=timezone.now())     # ended
+    ongoing = listings.filter(
+        Q(bid_end_time__gt=timezone.now()) | Q(bid_end_time__isnull=True),
+        is_active=True
+    )
+    past = listings.exclude(
+        id__in=ongoing.values_list('id', flat=True)
+    )
 
+    # Calculate revenues
     ongoing_page_obj, ongoing = paginate_queryset(request, ongoing)
     past_page_obj, past = paginate_queryset(request, past)
 
-    # Optional: total revenue from past bids
-    total_revenue = sum([l.revenue() for l in past])
+    # Total completed revenues across all listings
+    total_bid_revenue = sum(l.bid_revenue() for l in listings)
+    total_regular_revenue = sum(l.regular_sales_revenue() for l in listings)
+    total_revenue = total_bid_revenue + total_regular_revenue
+    
+    # Total pending revenues
+    total_pending_revenue = sum(l.pending_revenue() for l in listings)
 
     context = {
         'ongoing_listings': ongoing,
         'ongoing_page_obj': ongoing_page_obj,
         'past_listings': past,
         'past_page_obj': past_page_obj,
+        'total_bid_revenue': total_bid_revenue,
+        'total_regular_revenue': total_regular_revenue,
         'total_revenue': total_revenue,
+        'total_pending_revenue': total_pending_revenue,
     }
     return render(request, 'farmer/marketplace_sell.html', context)
 

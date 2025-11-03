@@ -1,56 +1,115 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Marketplace - Buy - AgriLeader{% endblock %}
 {% block content %}
-<h2>Available Products</h2>
+<ul class="nav nav-tabs mb-4" id="marketplaceTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" id="bidding-tab" data-bs-toggle="tab" data-bs-target="#bidding" type="button">
+            Bidding Products
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="direct-tab" data-bs-toggle="tab" data-bs-target="#direct" type="button">
+            Direct Purchase
+        </button>
+    </li>
+</ul>
 
-<div class="table-responsive">
-    <table class="table table-striped align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Name</th>
-                <th>Crop Type</th>
-                <th>Quantity</th>
-                <th>Base Price (₹)</th>
-                <th>Highest Bid (₹)</th>
-                <th>Bid Ends</th>
-                <th>Location</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for listing in listings %}
-            <tr>
-                <td>{{ listing.name }}</td>
-                <td>{{ listing.crop_type }}</td>
-                <td>{{ listing.quantity }}</td>
-                <td>{{ listing.price }}</td>
-                <td>
-                    {% with highest=listing.highest_bid %}
-                        {% if highest %}{{ highest.amount }}{% else %}-{% endif %}
-                    {% endwith %}
-                </td>
-                <td>
-                    {% if listing.bid_end_time %}
-                        {{ listing.bid_end_time|date:"M d, Y H:i" }}
-                        {% if listing.bid_end_time < now %}
-                            <span class="badge bg-danger">Closed</span>
-                        {% endif %}
-                    {% else %}
-                        <span class="text-muted">No deadline</span>
-                    {% endif %}
-                </td>
-                <td>{{ listing.location }}</td>
-                <td>
-                    <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-info">View</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8" class="text-center text-muted">No active listings found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="tab-content" id="marketplaceContent">
+    <!-- Bidding Products Tab -->
+    <div class="tab-pane fade show active" id="bidding">
+        <h3>Products Available for Bidding</h3>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Crop Type</th>
+                        <th>Quantity</th>
+                        <th>Base Price (₹)</th>
+                        <th>Highest Bid (₹)</th>
+                        <th>Bid Ends</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for listing in bidding_listings %}
+                    <tr>
+                        <td>{{ listing.name }}</td>
+                        <td>{{ listing.crop_type }}</td>
+                        <td>{{ listing.quantity }}</td>
+                        <td>{{ listing.price }}</td>
+                        <td>
+                            {% with highest=listing.highest_bid %}
+                                {% if highest %}{{ highest.amount }}{% else %}-{% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ listing.bid_end_time|date:"M d, Y H:i" }}</td>
+                        <td>{{ listing.location }}</td>
+                        <td>
+                            <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-primary">Bid Now</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">No products currently available for bidding.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% with page_obj=bidding_page_obj param_name='bid_page' %}
+            {% include 'partials/pagination.html' %}
+        {% endwith %}
+    </div>
+
+    <!-- Direct Purchase Tab -->
+    <div class="tab-pane fade" id="direct">
+        <h3>Products Available for Direct Purchase</h3>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Crop Type</th>
+                        <th>Available Quantity</th>
+                        <th>Price (₹)</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for listing in direct_purchase_listings %}
+                    <tr>
+                        <td>{{ listing.name }}</td>
+                        <td>{{ listing.crop_type }}</td>
+                        <td>{{ listing.available_quantity }}</td>
+                        <td>{{ listing.price }}</td>
+                        <td>{{ listing.location }}</td>
+                        <td>
+                            {% if listing.has_bidding_ended %}
+                                <span class="badge bg-info">Post-Bid Sale</span>
+                            {% else %}
+                                <span class="badge bg-success">Direct Sale</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-success">Purchase</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No products currently available for direct purchase.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% with page_obj=direct_page_obj param_name='direct_page' %}
+            {% include 'partials/pagination.html' %}
+        {% endwith %}
+    </div>
 </div>
 
 

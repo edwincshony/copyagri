@@ -9,8 +9,13 @@ class Purchase(models.Model):
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     purchase_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=[('confirmed', 'Confirmed'), ('shipped', 'Shipped'), ('delivered', 'Delivered')], default='confirmed')
-    # Add shipping notes if needed
+    status = models.CharField(max_length=20, choices=[
+        ('pending_payment', 'Pending Payment'),
+        ('payment_completed', 'Payment Completed'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered')
+    ], default='pending_payment')
+    payment_completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.buyer.username} - {self.listing.name}"

@@ -48,11 +48,33 @@ def profile(request):
 @login_required
 @buyer_required
 def marketplace_buy(request):
-    # Filter by buyer_type if needed (wholesaler bulk, etc.)
+    now = timezone.now()
+    
+    # Get all active listings
     listings = ProductListing.objects.filter(is_active=True).order_by('-created_at')
-    page_obj, listings = paginate_queryset(request, listings)
-    # Location filter placeholder: if request.GET.get('location'): listings = listings.filter(location__icontains=...)
-    return render(request, 'buyer/marketplace_buy.html', {'listings': listings,     'page_obj': page_obj})
+    
+    # Split listings into bidding and direct purchase
+    bidding_listings = []
+    direct_purchase_listings = []
+    
+    for listing in listings:
+        if listing.is_bidding_open():
+            bidding_listings.append(listing)
+        elif listing.is_available_for_regular_purchase():
+            direct_purchase_listings.append(listing)
+    
+    # Paginate both lists
+    bidding_page_obj, bidding_listings = paginate_queryset(request, bidding_listings)
+    direct_page_obj, direct_purchase_listings = paginate_queryset(request, direct_purchase_listings)
+    
+    context = {
+        'bidding_listings': bidding_listings,
+        'bidding_page_obj': bidding_page_obj,
+        'direct_purchase_listings': direct_purchase_listings,
+        'direct_page_obj': direct_page_obj,
+    }
+    
+    return render(request, 'buyer/marketplace_buy.html', context)
 
 from django.utils import timezone
 from buyer.models import Purchase
@@ -61,38 +83,57 @@ from buyer.models import Purchase
 @buyer_required
 def product_detail(request, listing_id):
     listing = get_object_or_404(ProductListing, id=listing_id)
+    now = timezone.now()
 
-    # ✅ Auto-close expired listing (redundant safety, won't duplicate purchases)
-    if listing.is_active and listing.bid_end_time and listing.bid_end_time < timezone.now():
+    # Handle bidding end
+    if listing.is_active and listing.bid_end_time and listing.bid_end_time < now:
         highest_bid = listing.highest_bid()
-        if highest_bid:
+        if highest_bid and highest_bid.payment_status == 'completed':
             highest_bid.is_accepted = True
             highest_bid.save(update_fields=["is_accepted"])
 
-            # Use same duplicate-safe pattern
+            # Create purchase for winning bid
             Purchase.objects.get_or_create(
                 buyer=highest_bid.bidder,
                 listing=listing,
                 defaults={
-                    "quantity": listing.quantity,
-                    "total_price": highest_bid.amount,
+                    "quantity": highest_bid.quantity,
+                    "total_price": highest_bid.total_amount,
+                    "payment_completed": True,
                 },
             )
 
-        listing.is_active = False
-        listing.save(update_fields=["is_active"])
-
-    # Get all bids (sorted highest to lowest)
+    # Get bid information
     bids = Bid.objects.filter(listing=listing).order_by('-amount')
+    winner_bid = listing.winning_bid()
+    is_winner = winner_bid and request.user == winner_bid.bidder
 
-    # Determine winner
-    winner_bid = None
-    is_winner = False
+    # Check if available for regular purchase
+    available_for_purchase = listing.is_available_for_regular_purchase()
+    available_quantity = listing.available_quantity() if available_for_purchase else 0
 
-    if not listing.is_active and bids.exists():
-        winner_bid = bids.first()
-        if request.user == winner_bid.bidder:
-            is_winner = True
+    # Handle regular purchase form
+    purchase_form = None
+    if available_for_purchase:
+        if request.method == 'POST' and 'purchase_submit' in request.POST:
+            purchase_form = PurchaseForm(request.POST)
+            if purchase_form.is_valid():
+                quantity = purchase_form.cleaned_data['quantity']
+                if quantity <= available_quantity:
+                    purchase = purchase_form.save(commit=False)
+                    purchase.buyer = request.user
+                    purchase.listing = listing
+                    purchase.total_price = listing.price * quantity
+                    purchase.payment_completed = True  # Mark payment as completed for regular purchases
+                    purchase.status = 'payment_completed'  # Update status immediately for regular purchases
+                    purchase.save()
+                    
+                    messages.success(request, 'Purchase confirmed!')
+                    return redirect('buyer:marketplace_buy')
+                else:
+                    messages.error(request, f'Only {available_quantity} units available.')
+        else:
+            purchase_form = PurchaseForm()
 
     context = {
         'listing': listing,
@@ -122,7 +163,9 @@ def place_bid(request, listing_id):
         if form.is_valid():
             bid = form.save(commit=False)
             bid.bidder = request.user
+            bid.quantity = listing.quantity  # automatically assign
             bid.save()
+
             messages.success(request, 'Bid placed successfully!')
             return redirect('buyer:product_detail', listing_id=listing.id)
         else:
@@ -161,21 +204,35 @@ def make_bid_payment(request, bid_id):
     bid = get_object_or_404(Bid, id=bid_id, bidder=request.user)
     listing = bid.listing
 
-    # Always pick the most recent purchase for that listing and user
-    purchase = Purchase.objects.filter(buyer=request.user, listing=listing).order_by('-id').first()
+    # Create or get the purchase record for this bid
+    purchase, created = Purchase.objects.get_or_create(
+        buyer=request.user,
+        listing=listing,
+        defaults={
+            'quantity': bid.quantity,
+            'total_price': bid.total_amount,  # Use total_amount which is amount * quantity
+            'status': 'pending_payment'
+        }
+    )
 
-    if not purchase:
-        messages.error(request, "No purchase record found for this bid.")
-        return redirect('buyer:product_detail', listing_id=listing.id)
-
-    # If already paid or confirmed, don't allow double payment
-    if purchase.status.lower() in ["paid", "confirmed"]:
-        messages.info(request, f"This purchase is already marked as '{purchase.status}'.")
+    # If already paid, don't allow double payment
+    if purchase.payment_completed or bid.payment_status == 'completed':
+        messages.info(request, "This bid has already been paid for.")
         return redirect('buyer:my_purchases')
 
     if request.method == "POST":
-        purchase.status = "Paid"
-        purchase.save(update_fields=["status"])
+        # Update both purchase and bid status
+        purchase.payment_completed = True
+        purchase.status = 'payment_completed'
+        purchase.save()
+        
+        bid.payment_status = 'completed'
+        bid.is_accepted = True
+        bid.save()
+        
+        # Update listing status
+        listing.save()  # This will trigger quantity check
+        
         messages.success(request, "✅ Payment successful for your winning bid!")
         return redirect('buyer:my_purchases')
 
@@ -192,9 +249,52 @@ def make_bid_payment(request, bid_id):
 @login_required
 @buyer_required
 def my_purchases(request):
+    # Get regular purchases
     purchases = Purchase.objects.filter(buyer=request.user).order_by('-purchase_date')
-    page_obj, purchases = paginate_queryset(request, purchases)
-    return render(request, 'buyer/my_purchases.html', {'purchases': purchases , 'page_obj': page_obj})
+    
+    # Get winning bids
+    winning_bids = Bid.objects.filter(
+        bidder=request.user,
+        is_accepted=True
+    ).select_related('listing').order_by('-placed_at')
+    
+    # Combine purchase info
+    purchase_info = []
+    
+    # Add regular purchases
+    for purchase in purchases:
+        purchase_info.append({
+            'date': purchase.purchase_date,
+            'type': 'regular',
+            'listing': purchase.listing,
+            'quantity': purchase.quantity,
+            'amount': purchase.total_price,
+            'status': purchase.status,
+            'payment_completed': purchase.payment_completed,
+            'purchase': purchase
+        })
+    
+    # Add winning bids
+    for bid in winning_bids:
+        purchase_info.append({
+            'date': bid.placed_at,
+            'type': 'bid',
+            'listing': bid.listing,
+            'quantity': bid.quantity,
+            'amount': bid.total_amount,
+            'status': 'Payment Completed' if bid.payment_status == 'completed' else 'Pending Payment',
+            'payment_completed': bid.payment_status == 'completed',
+            'bid': bid
+        })
+    
+    # Sort by date, newest first
+    purchase_info.sort(key=lambda x: x['date'], reverse=True)
+    
+    page_obj, purchase_info = paginate_queryset(request, purchase_info)
+    return render(request, 'buyer/my_purchases.html', {
+        'purchases': purchase_info,
+        'page_obj': page_obj
+    })
 
 @login_required
 @buyer_required
