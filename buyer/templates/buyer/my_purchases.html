@@ -1,42 +1,53 @@
 {% extends 'accounts/base.html' %}
 {% block title %}My Purchases - AgriLeader{% endblock %}
 {% block content %}
-<h2>My Purchases</h2>
-<div class="table-responsive">
-    <table class="table table-striped align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Total Price (₹)</th>
-                <th>Status</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for purchase in purchases %}
-            <tr>
-                <td>{{ purchase.listing.name }}</td>
-                <td>{{ purchase.quantity }}</td>
-                <td>{{ purchase.total_price }}</td>
-                <td>
-                    {% if purchase.status %}
-                        <span class="badge bg-success">{{ purchase.status|capfirst }}</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Completed</span>
-                    {% endif %}
-                </td>
-                <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">You haven’t made any purchases yet.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
 
+<h2 class="mb-3">My Purchases</h2>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Product</th>
+        <th>Type</th>
+        <th>Quantity</th>
+        <th>Total (₹)</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in purchases %}
+      <tr>
+        <td>{{ p.listing.name }}</td>
+        <td>{{ p.purchase_type|title }}</td>
+        <td>{{ p.quantity }}</td>
+        <td>{{ p.total_price }}</td>
+        <td>
+          {% if p.status == 'payment_completed' %}
+            <span class="badge bg-success">Paid</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Pending Payment</span>
+          {% endif %}
+        </td>
+        <td>{{ p.purchase_date|date:"Y-m-d H:i" }}</td>
+        <td>
+          {% if p.status != 'payment_completed' %}
+            <a href="{% url 'buyer:pay' p.id %}" class="btn btn-sm btn-primary">Pay Now</a>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center text-muted">You haven’t made any purchases yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {% include 'partials/pagination.html' %}
 

@@ -16,5 +16,7 @@ urlpatterns = [
     path('subsidies/', views.subsidies, name='subsidies'),
     path('notifications/', views.notifications, name='notifications'),
     path('booking/<int:booking_id>/', views.booking_detail, name='booking_detail'),
-    path('make-bid-payment/<int:bid_id>/', views.make_bid_payment, name='make_bid_payment'),
+    path('pay/<int:purchase_id>/', views.pay, name='pay'),
+    path('success/<int:purchase_id>/', views.success, name='success'),
+
 ]

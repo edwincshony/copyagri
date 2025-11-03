@@ -48,6 +48,8 @@ class BidForm(forms.ModelForm):
 
 
 
+
+
 class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Purchase
@@ -57,17 +59,20 @@ class PurchaseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         listing = kwargs.pop('listing', None)
         super().__init__(*args, **kwargs)
-        if listing:
-            self.instance.listing = listing
-            self.fields['quantity'].max_value = listing.quantity
+        self.listing = listing or getattr(self.instance, 'listing', None)
+        if self.listing:
+            self.fields['quantity'].max_value = self.listing.available_quantity()
         self.helper = FormHelper()
-        self.helper.add_input(Submit('submit', 'Confirm Purchase', css_class='btn btn-success'))
+        self.helper.add_input(Submit('submit', 'Proceed to Pay', css_class='btn btn-success'))
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
-        if quantity > self.instance.listing.quantity:
+        if not self.listing:
+            raise ValidationError('Invalid listing.')
+        if quantity > self.listing.available_quantity():
             raise ValidationError('Quantity exceeds available stock.')
         return quantity
+
 
 class StorageBookingForm(forms.ModelForm):  # Reuse from farmer, but for buyer
     class Meta:

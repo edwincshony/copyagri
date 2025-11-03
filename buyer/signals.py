@@ -1,4 +1,5 @@
 from django.db.models.signals import post_save
+from buyer.models import Payment
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -8,20 +9,27 @@ from django.conf import settings
 from .models import Purchase
 from farmer.models import Bid
 
+# buyer/signals.py (UPDATED notifications only)
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Purchase
+from farmer.models import Bid
+
 @receiver(post_save, sender=Purchase)
 def purchase_notification(sender, instance, created, **kwargs):
     if created:
         send_mail(
-            'Purchase Confirmed',
-            f'Your purchase of {instance.quantity} units of {instance.listing.name} has been confirmed.',
+            'Purchase Initiated',
+            f'Your purchase of {instance.quantity} units of {instance.listing.name} was created. Complete payment to confirm.',
             settings.DEFAULT_FROM_EMAIL,
             [instance.buyer.email],
             fail_silently=True,
         )
-        # Notify farmer
         send_mail(
-            'New Purchase Order',
-            f'{instance.buyer.username} purchased {instance.quantity} units of your {instance.listing.name}.',
+            'New Purchase Initiated',
+            f'{instance.buyer.username} initiated a purchase of {instance.quantity} units of your {instance.listing.name}.',
             settings.DEFAULT_FROM_EMAIL,
             [instance.listing.user.email],
             fail_silently=True,
@@ -37,7 +45,6 @@ def bid_notification(sender, instance, created, **kwargs):
             [instance.bidder.email],
             fail_silently=True,
         )
-        # Notify farmer
         send_mail(
             'New Bid on Your Listing',
             f'{instance.bidder.username} placed a bid of ₹{instance.amount} on {instance.listing.name}.',
@@ -45,6 +52,7 @@ def bid_notification(sender, instance, created, **kwargs):
             [instance.listing.user.email],
             fail_silently=True,
         )
+
 
 # farmer/signals.py
 from django.db.models.signals import post_save
@@ -111,15 +119,10 @@ def close_if_expired(sender, instance, **kwargs):
 
 
 # --- NEW: Update Analytics Revenue ---
-@receiver(post_save, sender=Purchase)
-def update_revenue_on_purchase(sender, instance, **kwargs):
-    """
-    Whenever a Purchase is confirmed or paid, update the AnalyticsData revenue.
-    """
-    if instance.status.lower() in ["confirmed", "paid"]:
+@receiver(post_save, sender=Payment)
+def update_revenue_on_payment(sender, instance, created, **kwargs):
+    if instance.status == 'success':
         today = timezone.now().date()
-        analytics_data, _ = AnalyticsData.objects.get_or_create(date=today)
-        
-        # Recalculate total revenue
-        analytics_data.total_revenue = calculate_total_revenue()
-        analytics_data.save(update_fields=["total_revenue"])
+        row, _ = AnalyticsData.objects.get_or_create(date=today)
+        row.total_revenue = calculate_total_revenue()
+        row.save(update_fields=['total_revenue'])

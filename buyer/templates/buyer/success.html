@@ -1,0 +1,12 @@
+<!-- payments/success.html -->
+ {% extends 'accounts/base.html' %}
+{% block title %}Marketplace - Buy - AgriLeader{% endblock %}
+{% block content %}
+{% load static %}
+<div class="container py-5 text-center">
+  <div style="font-size:72px;color:#28a745;">✔</div>
+  <h3 class="mt-3">Payment Successful</h3>
+  <p>Your payment for {{ purchase.listing.name }} was completed.</p>
+  <a class="btn btn-outline-success mt-2" href="{% url 'buyer:my_purchases' %}">View My Purchases</a>
+</div>
+{% endblock %}
