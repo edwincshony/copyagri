@@ -26,7 +26,6 @@ urlpatterns = [
     path('adminpanel/', include('adminpanel.urls', namespace='adminpanel')),
     path('buyer/', include('buyer.urls', namespace='buyer')),
     path('farmer/', include('farmer.urls', namespace='farmer')),
-    path('analytics/', include('analytics.urls', namespace='analytics')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
     path('', include('accounts.urls')),  # 👈 Add this line
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'adminpanel',   
     'farmer',
     'buyer',
-    'analytics',
     'notifications',
 ]
 
