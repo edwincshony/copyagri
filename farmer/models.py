@@ -50,45 +50,37 @@ class ProductListing(models.Model):
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     crop_type = models.CharField(max_length=50)
-    location = models.CharField(max_length=200)  # Geo-suggested
+    location = models.CharField(max_length=200)
     image = models.ImageField(upload_to='listings/', blank=True)
-    # 🕒 Bidding Time Window
     bid_start_time = models.DateTimeField(default=timezone.now)
-    bid_end_time = models.DateTimeField(null=True, blank=True)    
+    bid_end_time = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def is_bidding_open(self):
         now = timezone.now()
-        return self.is_active and self.bid_start_time <= now < (self.bid_end_time or now)
+        return self.bid_start_time <= now < (self.bid_end_time or now)
+
+    def has_bidding_ended(self):
+        now = timezone.now()
+        return self.bid_end_time and now >= self.bid_end_time
 
     def highest_bid(self):
-        return self.bids.order_by('-amount').first()
+        return self.bids.order_by('-amount').first() if hasattr(self, 'bids') else None
+
+    def winning_bid(self):
+        if self.has_bidding_ended():
+            return self.highest_bid()
+        return None
+
+    def revenue(self):
+        bid = self.winning_bid()
+        return bid.amount if bid else 0
 
     def __str__(self):
         return f"{self.user.username} - {self.name}"
-    
-# farmer/models.py
-    def close_bidding(self):
-        from buyer.models import Purchase
 
-        if not self.is_active:
-            return  # already closed, no loop
 
-        if self.bid_end_time and self.bid_end_time < timezone.now():
-            highest_bid = self.highest_bid()
-            if highest_bid:
-                highest_bid.is_accepted = True
-                highest_bid.save()
-                Purchase.objects.get_or_create(
-                    buyer=highest_bid.bidder,
-                    listing=self,
-                    quantity=self.quantity,
-                    total_price=highest_bid.amount,
-                )
-            # ✅ Important: mark inactive *once*
-            self.is_active = False
-            super(ProductListing, self).save(update_fields=['is_active'])
 
 
 

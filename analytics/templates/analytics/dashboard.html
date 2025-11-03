@@ -1,0 +1,307 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Filter Controls -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Time Period</h5>
+                    <select class="form-select" id="timePeriodFilter">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                        <option value="365">Last year</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2 class="card-text" id="totalUsers">0</h2>
+                    <div class="small text-muted">
+                        <span id="farmerCount">0</span> Farmers | 
+                        <span id="buyerCount">0</span> Buyers
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2 class="card-text">₹<span id="totalRevenue">0</span></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bookings</h5>
+                    <h2 class="card-text" id="totalBookings">0</h2>
+                    <div class="small text-muted">
+                        <span id="storageBookings">0</span> Storage | 
+                        <span id="cultivationBookings">0</span> Cultivation
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Listings</h5>
+                    <h2 class="card-text" id="totalListings">0</h2>
+                    <div class="small text-muted">
+                        <span id="activeListings">0</span> Active
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">User Growth</h5>
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Revenue Trend</h5>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Booking Analytics</h5>
+                    <canvas id="bookingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Listings Overview</h5>
+                    <canvas id="listingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+        border-radius: 0.5rem;
+    }
+    .card-title {
+        color: #6c757d;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .card-text {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    .form-select {
+        border-radius: 0.375rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Chart configurations and color schemes
+    const chartColors = {
+        blue: 'rgba(54, 162, 235, 0.2)',
+        green: 'rgba(75, 192, 192, 0.2)',
+        orange: 'rgba(255, 159, 64, 0.2)',
+        purple: 'rgba(153, 102, 255, 0.2)',
+    };
+    const chartBorders = {
+        blue: 'rgba(54, 162, 235, 1)',
+        green: 'rgba(75, 192, 192, 1)',
+        orange: 'rgba(255, 159, 64, 1)',
+        purple: 'rgba(153, 102, 255, 1)',
+    };
+
+    // Initialize charts
+    let userGrowthChart, revenueChart, bookingsChart, listingsChart;
+
+    // Function to update summary cards
+    function updateSummaryCards() {
+        fetch('{% url "analytics:get_data" %}')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalUsers').textContent = data.total_users;
+                document.getElementById('farmerCount').textContent = data.farmer_count;
+                document.getElementById('buyerCount').textContent = data.buyer_count;
+                document.getElementById('totalRevenue').textContent = data.total_revenue.toFixed(2);
+                document.getElementById('totalBookings').textContent = data.total_bookings;
+                document.getElementById('storageBookings').textContent = data.storage_bookings;
+                document.getElementById('cultivationBookings').textContent = data.cultivation_bookings;
+                document.getElementById('totalListings').textContent = data.total_listings;
+                document.getElementById('activeListings').textContent = data.active_listings;
+            });
+    }
+
+    // Function to update charts
+    function updateCharts(period) {
+        fetch(`{% url "analytics:filter_data" %}?period=${period}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update User Growth Chart
+                userGrowthChart.data.labels = data.labels;
+                userGrowthChart.data.datasets[0].data = data.users;
+                userGrowthChart.update();
+
+                // Update Revenue Chart
+                revenueChart.data.labels = data.labels;
+                revenueChart.data.datasets[0].data = data.revenue;
+                revenueChart.update();
+
+                // Update Bookings Chart
+                bookingsChart.data.labels = data.labels;
+                bookingsChart.data.datasets[0].data = data.bookings;
+                bookingsChart.update();
+
+                // Update Listings Chart
+                listingsChart.data.labels = data.labels;
+                listingsChart.data.datasets[0].data = data.listings;
+                listingsChart.update();
+            });
+    }
+
+    // Initialize charts when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create User Growth Chart
+        userGrowthChart = new Chart(document.getElementById('userGrowthChart'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Total Users',
+                    data: [],
+                    backgroundColor: chartColors.blue,
+                    borderColor: chartBorders.blue,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Create Revenue Chart
+        revenueChart = new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: [],
+                    backgroundColor: chartColors.green,
+                    borderColor: chartBorders.green,
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Create Bookings Chart
+        bookingsChart = new Chart(document.getElementById('bookingsChart'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Total Bookings',
+                    data: [],
+                    backgroundColor: chartColors.orange,
+                    borderColor: chartBorders.orange,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Create Listings Chart
+        listingsChart = new Chart(document.getElementById('listingsChart'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Total Listings',
+                    data: [],
+                    backgroundColor: chartColors.purple,
+                    borderColor: chartBorders.purple,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Update initial data
+        updateSummaryCards();
+        updateCharts(30); // Default to 30 days
+
+        // Add event listener for time period filter
+        document.getElementById('timePeriodFilter').addEventListener('change', function(e) {
+            updateCharts(e.target.value);
+        });
+    });
+</script>
+{% endblock %}

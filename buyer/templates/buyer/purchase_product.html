@@ -2,12 +2,15 @@
 {% load crispy_forms_tags %}
 {% block title %}Purchase {{ listing.name }} - AgriLeader{% endblock %}
 {% block content %}
-<h2>Purchase {{ listing.name }}</h2>
-<p>Price per Unit: ₹{{ listing.price }} | Available: {{ listing.quantity }}</p>
-<form method="post">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit" class="btn btn-success">Confirm Purchase</button>
-</form>
-<a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-secondary">Back</a>
+<div class="container my-4">
+    <h2 class="mb-3">Purchase {{ listing.name }}</h2>
+    <p>Price per Unit: ₹{{ listing.price }} | Available: {{ listing.quantity }}</p>
+
+    <form method="post" class="mb-3">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-success me-2">Confirm Purchase</button>
+        <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-secondary">Back</a>
+    </form>
+</div>
 {% endblock %}

@@ -1,51 +1,102 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Marketplace - Sell - AgriLeader{% endblock %}
-{% block content %}
 
+{% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0">My Product Listings</h2>
-    <a href="{% url 'farmer:create_listing' %}" class="btn btn-primary">
-        + Create New Listing
-    </a>
+    <a href="{% url 'farmer:create_listing' %}" class="btn btn-primary">+ Create New Listing</a>
 </div>
 
-<div class="row">
-    {% for listing in listings %}
-    <div class="col-md-4 mb-4">
+{% if total_revenue %}
+<div class="alert alert-success">
+    <strong>Total Revenue from Past Bids:</strong> ₹{{ total_revenue }}
+</div>
+{% endif %}
+
+<ul class="nav nav-tabs" id="listingTabs" role="tablist">
+  <li class="nav-item">
+    <button class="nav-link active" id="ongoing-tab" data-bs-toggle="tab" data-bs-target="#ongoing" type="button">Ongoing</button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button">Past</button>
+  </li>
+</ul>
+
+<div class="tab-content mt-3">
+  <!-- Ongoing Listings -->
+  <div class="tab-pane fade show active" id="ongoing">
+    <div class="row">
+    {% for listing in ongoing_listings %}
+      <div class="col-md-4 mb-4">
         <div class="card h-100">
-            {% if listing.image %}
-                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.name }}" style="height: 200px; object-fit: cover;">
-            {% else %}
-                <img src="https://via.placeholder.com/150" class="card-img-top" alt="No image" style="height: 200px; object-fit: cover;">
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ listing.name }}</h5>
-                <p class="card-text">
-                    <strong>Crop Type:</strong> {{ listing.crop_type }}<br>
-                    <strong>Quantity:</strong> {{ listing.quantity }}<br>
-                    <strong>Price:</strong> ₹{{ listing.price }}<br>
-                    <strong>Location:</strong> {{ listing.location }}<br>
-                    {% if listing.description %}
-                        <strong>Description:</strong> {{ listing.description|truncatewords:20 }}<br>
-                    {% endif %}
-                </p>
-                <div class="card-actions">
-                    <a href="{% url 'farmer:edit_listing' listing.id %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'farmer:delete_listing' listing.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
-                </div>
+          {% if listing.image %}
+            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.name }}" style="height: 200px; object-fit: cover;">
+          {% else %}
+            <img src="https://via.placeholder.com/150" class="card-img-top" alt="No image" style="height: 200px; object-fit: cover;">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ listing.name }}</h5>
+            <p class="card-text">
+              <strong>Crop Type:</strong> {{ listing.crop_type }}<br>
+              <strong>Quantity:</strong> {{ listing.quantity }}<br>
+              <strong>Base Price:</strong> ₹{{ listing.price }}<br>
+              <strong>Location:</strong> {{ listing.location }}<br>
+              {% if listing.description %}<strong>Description:</strong> {{ listing.description|truncatewords:20 }}<br>{% endif %}
+              <strong>Bidding ends at:</strong> {{ listing.bid_end_time|date:"d M Y H:i" }}<br>
+            </p>
+            <div class="card-actions">
+              <a href="{% url 'farmer:edit_listing' listing.id %}" class="btn btn-sm btn-warning">Edit</a>
+              <a href="{% url 'farmer:delete_listing' listing.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
             </div>
+          </div>
         </div>
-    </div>
+      </div>
     {% empty %}
-    <div class="col-12">
-        <p>No listings available.</p>
-    </div>
+      <div class="col-12"><p>No ongoing listings.</p></div>
     {% endfor %}
+    </div>
+  </div>
+
+  <!-- Past Listings -->
+  <div class="tab-pane fade" id="past">
+    <div class="row">
+    {% for listing in past_listings %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          {% if listing.image %}
+            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.name }}" style="height: 200px; object-fit: cover;">
+          {% else %}
+            <img src="https://via.placeholder.com/150" class="card-img-top" alt="No image" style="height: 200px; object-fit: cover;">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ listing.name }}</h5>
+            <p class="card-text">
+              <strong>Crop Type:</strong> {{ listing.crop_type }}<br>
+              <strong>Quantity:</strong> {{ listing.quantity }}<br>
+              <strong>Base Price:</strong> ₹{{ listing.price }}<br>
+              <strong>Location:</strong> {{ listing.location }}<br>
+              {% if listing.description %}<strong>Description:</strong> {{ listing.description|truncatewords:20 }}<br>{% endif %}
+              {% with bid=listing.winning_bid %}
+                {% if bid %}
+                  <strong>Winner:</strong> {{ bid.bidder.username }}<br>
+                  <strong>Winning Price:</strong> ₹{{ bid.amount }}<br>
+                {% else %}
+                  <strong>No bids received</strong><br>
+                {% endif %}
+              {% endwith %}
+            </p>
+            <div class="card-actions">
+              <a href="{% url 'farmer:edit_listing' listing.id %}" class="btn btn-sm btn-warning">Edit</a>
+              <a href="{% url 'farmer:delete_listing' listing.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12"><p>No past listings.</p></div>
+    {% endfor %}
+    </div>
+  </div>
 </div>
-
-<!-- Pagination -->
-
-{% include 'partials/pagination.html' %}
-
 
 {% endblock %}

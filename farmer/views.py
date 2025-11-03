@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.db.models import Sum, F, DecimalField, Q, Value
 from django.db.models.functions import Coalesce
+from buyer.models import Purchase
 from django.core.paginator import Paginator
 from django.db import models
 from django.db.models.functions import Coalesce
@@ -51,12 +52,29 @@ def land_records(request):
     page_obj, records = paginate_queryset(request, records)
     return render(request, 'farmer/land_records.html', {'records': records , 'page_obj': page_obj})
 
-@login_required
 @farmer_required
 def marketplace_sell(request):
-    listings = ProductListing.objects.filter(user=request.user, is_active=True)
-    page_obj, listings = paginate_queryset(request, listings)
-    return render(request, 'farmer/marketplace_sell.html', {'listings': listings , 'page_obj': page_obj})
+    listings = ProductListing.objects.filter(user=request.user).order_by('-created_at')
+
+    ongoing = listings.filter(bid_end_time__gt=timezone.now())  # still open
+    past = listings.filter(bid_end_time__lte=timezone.now())     # ended
+
+    ongoing_page_obj, ongoing = paginate_queryset(request, ongoing)
+    past_page_obj, past = paginate_queryset(request, past)
+
+    # Optional: total revenue from past bids
+    total_revenue = sum([l.revenue() for l in past])
+
+    context = {
+        'ongoing_listings': ongoing,
+        'ongoing_page_obj': ongoing_page_obj,
+        'past_listings': past,
+        'past_page_obj': past_page_obj,
+        'total_revenue': total_revenue,
+    }
+    return render(request, 'farmer/marketplace_sell.html', context)
+
+
 
 @login_required
 @farmer_required

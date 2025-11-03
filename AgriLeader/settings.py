@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'farmer',
     'buyer',
     'notifications',
+    'analytics',
 ]
 
 MIDDLEWARE = [

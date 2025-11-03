@@ -1,6 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
+from django.utils import timezone
+from analytics.views import calculate_total_revenue  # make sure path is correct
+from analytics.models import AnalyticsData
 from django.conf import settings
 from .models import Purchase
 from farmer.models import Bid
@@ -107,3 +110,16 @@ def close_if_expired(sender, instance, **kwargs):
 
 
 
+# --- NEW: Update Analytics Revenue ---
+@receiver(post_save, sender=Purchase)
+def update_revenue_on_purchase(sender, instance, **kwargs):
+    """
+    Whenever a Purchase is confirmed or paid, update the AnalyticsData revenue.
+    """
+    if instance.status.lower() in ["confirmed", "paid"]:
+        today = timezone.now().date()
+        analytics_data, _ = AnalyticsData.objects.get_or_create(date=today)
+        
+        # Recalculate total revenue
+        analytics_data.total_revenue = calculate_total_revenue()
+        analytics_data.save(update_fields=["total_revenue"])

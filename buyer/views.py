@@ -125,10 +125,13 @@ def place_bid(request, listing_id):
             bid.save()
             messages.success(request, 'Bid placed successfully!')
             return redirect('buyer:product_detail', listing_id=listing.id)
+        else:
+            messages.error(request, 'There was an error with your bid.')
     else:
         form = BidForm(listing=listing)
 
     return render(request, 'buyer/place_bid.html', {'form': form, 'listing': listing})
+
 
 
 @login_required
