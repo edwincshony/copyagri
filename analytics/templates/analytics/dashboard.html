@@ -41,6 +41,12 @@
                 <div class="card-body">
                     <h5 class="card-title">Total Revenue</h5>
                     <h2 class="card-text">₹<span id="totalRevenue">0</span></h2>
+                    <div class="small text-muted">
+                        <div>Direct Purchases: ₹<span id="purchaseRevenue">0</span></div>
+                        <div>Bid Purchases: ₹<span id="bidRevenue">0</span></div>
+                        <div>Cultivation: ₹<span id="cultivationRevenue">0</span></div>
+                        <div>Storage: ₹<span id="storageRevenue">0</span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,13 +166,29 @@
         fetch('{% url "analytics:get_data" %}')
             .then(response => response.json())
             .then(data => {
+                // Update user counts
                 document.getElementById('totalUsers').textContent = data.total_users;
                 document.getElementById('farmerCount').textContent = data.farmer_count;
                 document.getElementById('buyerCount').textContent = data.buyer_count;
-                document.getElementById('totalRevenue').textContent = data.total_revenue.toFixed(2);
+                
+                // Update revenue information
+                document.getElementById('totalRevenue').textContent = 
+                    (data.total_revenue || 0).toFixed(2);
+                document.getElementById('purchaseRevenue').textContent = 
+                    (data.revenue_breakdown?.purchases || 0).toFixed(2);
+                document.getElementById('bidRevenue').textContent = 
+                    (data.revenue_breakdown?.bids || 0).toFixed(2);
+                document.getElementById('cultivationRevenue').textContent = 
+                    (data.revenue_breakdown?.cultivation || 0).toFixed(2);
+                document.getElementById('storageRevenue').textContent = 
+                    (data.revenue_breakdown?.storage || 0).toFixed(2);
+                
+                // Update booking counts
                 document.getElementById('totalBookings').textContent = data.total_bookings;
                 document.getElementById('storageBookings').textContent = data.storage_bookings;
                 document.getElementById('cultivationBookings').textContent = data.cultivation_bookings;
+                
+                // Update listing counts
                 document.getElementById('totalListings').textContent = data.total_listings;
                 document.getElementById('activeListings').textContent = data.active_listings;
             });

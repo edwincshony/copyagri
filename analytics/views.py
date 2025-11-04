@@ -10,6 +10,9 @@ from .models import AnalyticsData
 from accounts.models import CustomUser
 from farmer.models import ProductListing
 from farmer.models import CultivationBooking, StorageBooking
+from django.db.models import Sum, F
+from farmer.models import Bid  # you forgot this import
+
 
 def is_admin(user):
     return user.is_superuser
@@ -20,16 +23,33 @@ def analytics_dashboard(request):
 
 @user_passes_test(is_admin)
 def get_analytics_data(request):
-    # Get the latest analytics data
-    latest_data = AnalyticsData.objects.first()
+    # Force regenerate analytics data to get fresh numbers
+    latest_data = generate_analytics_data()
     
-    if not latest_data:
-        # Generate new data if none exists
-        latest_data = generate_analytics_data()
+    # Calculate current revenue components
+    cultivation_revenue = CultivationBooking.objects.filter(
+        status__in=['approved', 'completed']
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+    
+    storage_revenue = StorageBooking.objects.filter(
+        status__in=['approved', 'completed']
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+    
+    purchase_revenue = Purchase.objects.filter(
+        status='payment_completed',
+        purchase_type='regular'
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+    
+    bid_revenue = Bid.objects.filter(
+        is_accepted=True,
+        payment_status='completed'
+    ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
+    
+    total_revenue = float(cultivation_revenue) + float(storage_revenue) + float(purchase_revenue) + float(bid_revenue or 0)
     
     data = {
-        'total_users' : CustomUser.objects.filter(is_superuser=False).count(),
-        'total_revenue': float(latest_data.total_revenue),
+        'total_users': CustomUser.objects.filter(is_superuser=False).count(),
+        'total_revenue': total_revenue,
         'total_bookings': latest_data.total_bookings,
         'total_listings': latest_data.total_listings,
         'farmer_count': latest_data.farmer_count,
@@ -37,6 +57,12 @@ def get_analytics_data(request):
         'storage_bookings': latest_data.storage_bookings,
         'cultivation_bookings': latest_data.cultivation_bookings,
         'active_listings': latest_data.active_listings,
+        'revenue_breakdown': {
+            'purchases': float(purchase_revenue),
+            'bids': float(bid_revenue or 0),
+            'cultivation': float(cultivation_revenue),
+            'storage': float(storage_revenue)
+        }
     }
     
     return JsonResponse(data)
@@ -49,6 +75,36 @@ def get_filtered_data(request):
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=days)
     
+    # Calculate revenue from cultivation bookings
+    cultivation_revenue = CultivationBooking.objects.filter(
+        status__in=['approved', 'completed'],
+        booked_at__date__range=[start_date, end_date]
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # Calculate revenue from storage bookings
+    storage_revenue = StorageBooking.objects.filter(
+        status__in=['approved', 'completed'],
+        booked_at__date__range=[start_date, end_date]
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # Calculate revenue from regular purchases (excluding bids)
+    purchase_revenue = Purchase.objects.filter(
+        status='payment_completed',
+        purchase_type='regular',
+        purchase_date__date__range=[start_date, end_date]
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # Calculate revenue from bids
+    bid_revenue = Bid.objects.filter(
+        is_accepted=True,
+        payment_status='completed',
+        created_at__date__range=[start_date, end_date]
+    ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
+    
+    # Calculate total revenue
+    purchase_revenue_total = float(purchase_revenue + (bid_revenue or 0))
+    total_revenue = purchase_revenue_total + float(cultivation_revenue) + float(storage_revenue)
+    
     data = AnalyticsData.objects.filter(
         date__range=[start_date, end_date]
     ).order_by('date')
@@ -59,6 +115,13 @@ def get_filtered_data(request):
         'revenue': [float(item.total_revenue) for item in data],
         'bookings': [item.total_bookings for item in data],
         'listings': [item.total_listings for item in data],
+        'total_revenue': float(total_revenue),
+        'revenue_breakdown': {
+            'purchases': float(purchase_revenue),
+            'bids': float(bid_revenue or 0),
+            'cultivation': float(cultivation_revenue),
+            'storage': float(storage_revenue)
+        }
     }
     
     return JsonResponse(response_data)
@@ -114,10 +177,32 @@ def generate_analytics_data():
         analytics_data.save()
     
     return analytics_data
+from django.db import models
+from django.db.models import Sum, F
+from buyer.models import Purchase
+from farmer.models import CultivationBooking, StorageBooking, Bid
 
 def calculate_total_revenue():
-    """Calculate total revenue from all confirmed or paid purchases."""
-    total = Purchase.objects.filter(status__in=["confirmed", "paid"]).aggregate(
-        total=Sum("total_price")
-    )["total"] or 0
-    return float(total)
+    # Get cultivation revenue
+    cultivation_rev = CultivationBooking.objects.filter(
+        status__in=["approved", "completed"]
+    ).aggregate(total=Sum("total_price"))["total"] or 0
+
+    # Get storage revenue
+    storage_rev = StorageBooking.objects.filter(
+        status__in=["approved", "completed"]
+    ).aggregate(total=Sum("total_price"))["total"] or 0
+
+    # Get regular purchase revenue (exclude bid type purchases to avoid duplicate count)
+    purchase_rev = Purchase.objects.filter(
+        status="payment_completed",
+        purchase_type="regular"
+    ).aggregate(total=Sum("total_price"))["total"] or 0
+
+    # Get bid revenue
+    bid_rev = Bid.objects.filter(
+        is_accepted=True,
+        payment_status="completed"
+    ).aggregate(total=Sum(F("amount") * F("quantity")))["total"] or 0
+
+    return float(cultivation_rev + storage_rev + purchase_rev + bid_rev)
