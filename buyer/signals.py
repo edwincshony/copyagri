@@ -87,7 +87,7 @@ def close_if_expired(sender, instance, **kwargs):
             if not listing.is_active:
                 return  # Already closed elsewhere
 
-            highest_bid = listing.highest_bid()
+            highest_bid = listing.highest_bid
             if highest_bid:
                 # Mark bid as accepted
                 highest_bid.is_accepted = True

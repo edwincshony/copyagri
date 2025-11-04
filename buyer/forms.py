@@ -34,7 +34,7 @@ class BidForm(forms.ModelForm):
                 f"Bid must be greater than the base price of ₹{self.listing.price}."
             )
 
-        highest_bid = self.listing.highest_bid()
+        highest_bid = self.listing.highest_bid
         if highest_bid and amount <= highest_bid.amount:
             raise ValidationError(f'Your bid must be higher than ₹{highest_bid.amount}.')
 
@@ -61,7 +61,7 @@ class PurchaseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.listing = listing or getattr(self.instance, 'listing', None)
         if self.listing:
-            self.fields['quantity'].max_value = self.listing.available_quantity()
+            self.fields['quantity'].max_value = self.listing.available_quantity
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Proceed to Pay', css_class='btn btn-success'))
 
@@ -69,7 +69,7 @@ class PurchaseForm(forms.ModelForm):
         quantity = self.cleaned_data['quantity']
         if not self.listing:
             raise ValidationError('Invalid listing.')
-        if quantity > self.listing.available_quantity():
+        if quantity > self.listing.available_quantity:
             raise ValidationError('Quantity exceeds available stock.')
         return quantity
 

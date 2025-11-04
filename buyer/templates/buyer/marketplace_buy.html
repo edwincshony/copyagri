@@ -37,7 +37,7 @@
                     <tr>
                         <td>{{ listing.name }}</td>
                         <td>{{ listing.crop_type }}</td>
-                        <td>{{ listing.quantity }}</td>
+                        <td>{{ listing.available_quantity }}</td>
                         <td>{{ listing.price }}</td>
                         <td>
                             {% with highest=listing.highest_bid %}
@@ -47,7 +47,7 @@
                         <td>{{ listing.bid_end_time|date:"M d, Y H:i" }}</td>
                         <td>{{ listing.location }}</td>
                         <td>
-                            <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-primary">Bid Now</a>
+                            <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-primary">View</a>
                         </td>
                     </tr>
                     {% empty %}

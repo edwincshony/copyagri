@@ -27,8 +27,10 @@
         <td>
           {% if p.status == 'payment_completed' %}
             <span class="badge bg-success">Paid</span>
+          {% elif p.payment and p.payment.status == 'success' %}
+            <span class="badge bg-success">Paid</span>
           {% else %}
-            <span class="badge bg-warning text-dark">Pending Payment</span>
+            <span class="badge bg-secondary">—</span>
           {% endif %}
         </td>
         <td>{{ p.purchase_date|date:"Y-m-d H:i" }}</td>

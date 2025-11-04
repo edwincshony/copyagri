@@ -55,57 +55,52 @@ def land_records(request):
 from django.db.models import Q
 from django.utils import timezone
 
-@farmer_required
+from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from django.utils import timezone
+from django.db.models import Q
+from utils.pagination import paginate_queryset
+from .models import ProductListing
+from .forms import ProductListingForm
+@login_required
 def marketplace_sell(request):
     listings = ProductListing.objects.filter(user=request.user).order_by('-created_at')
-
     now = timezone.now()
-    # Active bidding: started, not ended (or open-ended), active
-    ongoing_bidding = listings.filter(
+
+    # Active bidding: started, not ended or open-ended, active
+    ongoingbidding = listings.filter(
         is_active=True,
         bid_start_time__lte=now
     ).filter(Q(bid_end_time__gt=now) | Q(bid_end_time__isnull=True))
 
-    # Awaiting winner payment: ended within last 6 hours, active
-    awaiting_winner_payment = listings.filter(
-        is_active=True,
-        bid_end_time__isnull=False,
-        bid_end_time__lte=now,
-        bid_end_time__gt=now - timezone.timedelta(hours=6),
-    )
-
-    # Past: everything else
-    past = listings.exclude(
-        id__in=ongoing_bidding.values_list('id', flat=True)
-    ).exclude(
-        id__in=awaiting_winner_payment.values_list('id', flat=True)
-    )
+    # Past listings: all listings not in ongoing bidding
+    past = listings.exclude(id__in=ongoingbidding.values_list('id', flat=True))
 
     # Paginate each section
-    ongoing_page_obj, ongoing_bidding = paginate_queryset(request, ongoing_bidding)
-    awaiting_page_obj, awaiting_winner_payment = paginate_queryset(request, awaiting_winner_payment)
-    past_page_obj, past = paginate_queryset(request, past)
+    ongoingpageobj, ongoingbidding = paginate_queryset(request, ongoingbidding)
+    pastpageobj, past = paginate_queryset(request, past)
 
-    # Revenues (use ProductListing helpers previously added)
-    total_bid_revenue = sum(l.bid_revenue() for l in listings)
-    total_regular_revenue = sum(l.regular_sales_revenue() for l in listings)
-    total_revenue = total_bid_revenue + total_regular_revenue
-    total_pending_revenue = sum(l.pending_revenue() for l in listings)
+    # Calculate ONLY completed revenues: ensure these fields are correctly named in your model
+    totalbidrevenue = sum(l.bid_revenue for l in listings)
+    totalregularrevenue = sum(l.regular_sales_revenue for l in listings)
+    totalrevenue = totalbidrevenue + totalregularrevenue
 
     context = {
-        'ongoing_listings': ongoing_bidding,
-        'ongoing_page_obj': ongoing_page_obj,
-        'awaiting_payment_listings': awaiting_winner_payment,
-        'awaiting_page_obj': awaiting_page_obj,
-        'past_listings': past,
-        'past_page_obj': past_page_obj,
-        'total_bid_revenue': total_bid_revenue,
-        'total_regular_revenue': total_regular_revenue,
-        'total_revenue': total_revenue,
-        'total_pending_revenue': total_pending_revenue,
+        'ongoinglistings': ongoingbidding,
+        'ongoingpageobj': ongoingpageobj,
+        'pastlistings': past,
+        'pastpageobj': pastpageobj,
+        'totalbidrevenue': totalbidrevenue,
+        'totalregularrevenue': totalregularrevenue,
+        'totalrevenue': totalrevenue,
         'now': now,
     }
+
     return render(request, 'farmer/marketplace_sell.html', context)
+
+
+
 
 
 

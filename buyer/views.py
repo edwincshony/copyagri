@@ -58,10 +58,11 @@ def marketplace_buy(request):
     direct_purchase_listings = []
     
     for listing in listings:
-        if listing.is_bidding_open():
+        if listing.is_bidding_open:
             bidding_listings.append(listing)
-        elif listing.is_available_for_regular_purchase():
+        elif listing.is_available_for_regular_purchase:
             direct_purchase_listings.append(listing)
+
     
     # Paginate both lists
     bidding_page_obj, bidding_listings = paginate_queryset(request, bidding_listings)
@@ -91,20 +92,22 @@ from .forms import BidForm, PurchaseForm, StorageBookingForm
 @login_required
 def product_detail(request, listing_id):
     listing = get_object_or_404(ProductListing, id=listing_id)
-
     bids = Bid.objects.filter(listing=listing).order_by('-amount')
-    winner_bid = listing.winning_bid()
+    winner_bid = listing.winning_bid
     is_winner = bool(winner_bid and request.user == winner_bid.bidder)
+    
+    # KEY FIX: Allow winner to pay AFTER bidding ends, within 6-hour window
     show_winner_pay_cta = bool(
-        is_winner
-        and (listing.is_bidding_open() or listing.is_within_bid_payment_window())
-        and winner_bid.payment_status == 'pending'
+        is_winner and 
+        (listing.is_bidding_open or listing.is_within_bid_payment_window) and
+        winner_bid.payment_status == 'pending'
     )
 
-    available_for_purchase = listing.is_available_for_regular_purchase()
-    available_quantity = listing.available_quantity()
+    available_for_purchase = listing.is_available_for_regular_purchase
 
-    # Winner: initialize a Purchase for bid and redirect to unified pay page
+    available_quantity = listing.available_quantity
+    
+    # Winner payment initialization
     if show_winner_pay_cta and request.method == 'GET' and request.GET.get('init_bid_payment') == '1':
         existing = Purchase.objects.filter(
             buyer=request.user,
@@ -112,8 +115,10 @@ def product_detail(request, listing_id):
             purchase_type='bid',
             related_bid=winner_bid
         ).first()
+        
         if existing:
             return redirect('buyer:pay', purchase_id=existing.id)
+        
         purchase = Purchase.objects.create(
             buyer=request.user,
             listing=listing,
@@ -122,11 +127,11 @@ def product_detail(request, listing_id):
             quantity=winner_bid.quantity,
             unit_price=winner_bid.amount,
             total_price=winner_bid.total_amount,
-            status='pending_payment',
+            status='pending_payment'
         )
         return redirect('buyer:pay', purchase_id=purchase.id)
-
-    # Regular purchase flow -> create pending Purchase and redirect to unified payments
+    
+    # Regular purchase form handling
     purchase_form = None
     if available_for_purchase:
         if request.method == 'POST' and 'purchase_submit' in request.POST:
@@ -140,7 +145,7 @@ def product_detail(request, listing_id):
                     quantity=quantity,
                     unit_price=listing.price,
                     total_price=listing.price * quantity,
-                    status='pending_payment',
+                    status='pending_payment'
                 )
                 messages.success(request, 'Proceed to payment to confirm your order.')
                 return redirect('buyer:pay', purchase_id=purchase.id)
@@ -148,7 +153,7 @@ def product_detail(request, listing_id):
                 messages.error(request, 'Please correct the errors below.')
         else:
             purchase_form = PurchaseForm(listing=listing)
-
+    
     context = {
         'listing': listing,
         'bids': bids,
@@ -161,6 +166,7 @@ def product_detail(request, listing_id):
         'now': timezone.now(),
     }
     return render(request, 'buyer/product_detail.html', context)
+
 
 
 
@@ -180,7 +186,7 @@ def place_bid(request, listing_id):
         if form.is_valid():
             bid = form.save(commit=False)
             bid.bidder = request.user
-            bid.quantity = listing.quantity  # lock to listing.quantity
+            bid.quantity = listing.available_quantity  # snapshot the available stock at time of bid
             bid.save()
             messages.success(request, 'Bid placed successfully!')
             return redirect('buyer:product_detail', listing_id=listing.id)
@@ -264,9 +270,14 @@ def make_bid_payment(request, bid_id):
 
 @login_required
 def my_purchases(request):
-    purchases = Purchase.objects.filter(buyer=request.user).order_by('-purchase_date')
+    purchases = (
+        Purchase.objects
+        .filter(buyer=request.user, status='payment_completed')
+        .order_by('-purchase_date')
+    )
     page_obj, purchases = paginate_queryset(request, purchases)
     return render(request, 'buyer/my_purchases.html', {'purchases': purchases, 'page_obj': page_obj})
+
 
 @login_required
 @buyer_required
@@ -320,12 +331,21 @@ from django.contrib import messages
 from buyer.models import Purchase
 from .models import Payment
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils.crypto import get_random_string
+from django.contrib import messages
+from buyer.models import Purchase
+from .models import Payment
+
 @login_required
 def pay(request, purchase_id):
     purchase = get_object_or_404(Purchase, id=purchase_id, buyer=request.user)
+    
+    # Already paid
     if purchase.status == 'payment_completed' and purchase.payment and purchase.payment.status == 'success':
         return redirect('buyer:success', purchase_id=purchase.id)
-
+    
     # Initialize payment if not exists
     if not purchase.payment:
         payment = Payment.objects.create(
@@ -337,27 +357,29 @@ def pay(request, purchase_id):
         )
         purchase.payment = payment
         purchase.save(update_fields=['payment'])
-
+    
     if request.method == 'POST':
-        # Dummy success path
+        # Mark payment successful
         purchase.payment.mark_success()
-        # Finalize purchase
+        
+        # Update purchase status
         purchase.status = 'payment_completed'
         purchase.save(update_fields=['status'])
-
-        # For bid purchase, mark bid accepted + completed
+        
+        # KEY FIX: Update bid status if this is a bid purchase
         if purchase.purchase_type == 'bid' and purchase.related_bid:
             bid = purchase.related_bid
             bid.payment_status = 'completed'
             bid.is_accepted = True
             bid.save(update_fields=['payment_status', 'is_accepted'])
-
+        
         messages.success(request, 'Payment successful!')
         return redirect('buyer:success', purchase_id=purchase.id)
-
+    
     return render(request, 'buyer/pay.html', {'purchase': purchase})
 
 @login_required
 def success(request, purchase_id):
     purchase = get_object_or_404(Purchase, id=purchase_id, buyer=request.user)
     return render(request, 'buyer/success.html', {'purchase': purchase})
+
