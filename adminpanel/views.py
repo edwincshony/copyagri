@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from farmer.models import CultivationBooking, StorageBooking
+from farmer.models import CultivationBooking, StorageBooking, ProductListing
+from buyer.models import Purchase
 from django.utils import timezone
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -287,9 +288,35 @@ def delete_subsidy_scheme(request, scheme_id):
 @login_required
 @admin_required
 def marketplace_monitoring(request):
-    # Placeholder: Later integrate with marketplace models
-    context = {'message': 'Marketplace monitoring coming soon. View product listings and transactions here.'}
-    return render(request, 'adminpanel/marketplace_monitoring.html', context)
+    from django.db.models import F, Sum, Case, When, IntegerField, Q
+    from django.db.models.functions import Coalesce
+
+    # Get all product listings
+    listings = ProductListing.objects.all()
+
+    # Annotate with sales information
+    listings = listings.annotate(
+        units_sold=Coalesce(
+            Sum('purchase__quantity', 
+                filter=Q(purchase__status='payment_completed')),
+            0,
+            output_field=IntegerField()
+        ),
+        remaining_stock=F('quantity') - Coalesce(
+            Sum('purchase__quantity', 
+                filter=Q(purchase__status='payment_completed')),
+            0,
+            output_field=IntegerField()
+        )
+    ).order_by('-created_at')
+
+    # Use the global pagination function
+    page_obj, listings = paginate_queryset(request, listings)
+    
+    return render(request, 'adminpanel/marketplace_monitoring.html', {
+        'listings': listings,
+        'page_obj': page_obj
+    })
 
 
 @login_required
@@ -367,5 +394,3 @@ def storage_bookings(request):
         'adminpanel/storage_bookings.html', 
         {'bookings': bookings, 'page_obj': page_obj}
     )
-
-

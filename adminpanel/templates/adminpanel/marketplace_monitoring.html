@@ -1,10 +1,85 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Marketplace Monitoring - AgriLeader{% endblock %}
+
 {% block content %}
-<h2>Marketplace Monitoring</h2>
-<div class="alert alert-info">
-    {{ message }}
+<div class="container mt-4">
+    <h2 class="mb-4">Marketplace Monitoring</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Farmer Name</th>
+                        <th>Product Name</th>
+                        <th>Crop Type</th>
+                        <th>Total Stock</th>
+                        <th>Remaining Stock</th>
+                        <th>Units Sold</th>
+                        <th>Price per Unit</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for listing in listings %}
+                    <tr>
+                        <td>{{ listing.user.get_full_name|default:listing.user.username }}</td>
+                        <td>{{ listing.name }}</td>
+                        <td>{{ listing.crop_type }}</td>
+                        <td>{{ listing.quantity }}</td>
+                        <td>{{ listing.remaining_stock }}</td>
+                        <td>{{ listing.units_sold }}</td>
+                        <td>₹{{ listing.price }}</td>
+                        <td>{{ listing.location }}</td>
+                        <td>
+                            {% if listing.is_active %}
+                                {% if listing.has_bidding_ended %}
+                                    <span class="badge bg-warning">Bidding Ended</span>
+                                {% elif listing.is_bidding_open %}
+                                    <span class="badge bg-success">Active (Bidding)</span>
+                                {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ listing.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center">No product listings found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if page_obj %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
-<p><a href="#" class="btn btn-primary">View Product Listings (Coming Soon)</a></p>
-<p><a href="#" class="btn btn-secondary">Monitor Transactions (Coming Soon)</a></p>
 {% endblock %}
