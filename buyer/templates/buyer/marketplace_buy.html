@@ -7,11 +7,7 @@
             Bidding Products
         </button>
     </li>
-    <li class="nav-item">
-        <button class="nav-link" id="direct-tab" data-bs-toggle="tab" data-bs-target="#direct" type="button">
-            Direct Purchase
-        </button>
-    </li>
+
 </ul>
 
 <div class="tab-content" id="marketplaceContent">
@@ -63,53 +59,7 @@
         {% endwith %}
     </div>
 
-    <!-- Direct Purchase Tab -->
-    <div class="tab-pane fade" id="direct">
-        <h3>Products Available for Direct Purchase</h3>
-        <div class="table-responsive">
-            <table class="table table-striped align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Name</th>
-                        <th>Crop Type</th>
-                        <th>Available Quantity</th>
-                        <th>Price (₹)</th>
-                        <th>Location</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for listing in direct_purchase_listings %}
-                    <tr>
-                        <td>{{ listing.name }}</td>
-                        <td>{{ listing.crop_type }}</td>
-                        <td>{{ listing.available_quantity }}</td>
-                        <td>{{ listing.price }}</td>
-                        <td>{{ listing.location }}</td>
-                        <td>
-                            {% if listing.has_bidding_ended %}
-                                <span class="badge bg-info">Post-Bid Sale</span>
-                            {% else %}
-                                <span class="badge bg-success">Direct Sale</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{% url 'buyer:product_detail' listing.id %}" class="btn btn-sm btn-success">Purchase</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">No products currently available for direct purchase.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% with page_obj=direct_page_obj param_name='direct_page' %}
-            {% include 'partials/pagination.html' %}
-        {% endwith %}
-    </div>
+  
 </div>
 
 

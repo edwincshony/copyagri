@@ -90,13 +90,17 @@ class ProductListingForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Create Listing', css_class='btn btn-primary'))
 
-        # ⏰ Pre-fill start time with current time
+        # Make bid_end_time mandatory
+        self.fields['bid_end_time'].required = True
+
+        # ⏰ Pre-fill start time with current time, remove seconds
         if not self.instance.pk:
             now = timezone.localtime()
-            self.initial['bid_start_time'] = now
+            now_trimmed = now.replace(second=0, microsecond=0)  # remove seconds
+            self.initial['bid_start_time'] = now_trimmed
 
-            # Add HTML min attributes (for browser restriction)
-            now_str = now.strftime("%Y-%m-%dT%H:%M")
+            # Add HTML min attributes
+            now_str = now_trimmed.strftime("%Y-%m-%dT%H:%M")
             self.fields['bid_start_time'].widget.attrs['min'] = now_str
             self.fields['bid_end_time'].widget.attrs['min'] = now_str
 

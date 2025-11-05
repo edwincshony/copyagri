@@ -48,7 +48,7 @@ def get_analytics_data(request):
     total_revenue = float(cultivation_revenue) + float(storage_revenue) + float(purchase_revenue) + float(bid_revenue or 0)
     
     data = {
-        'total_users': CustomUser.objects.filter(is_superuser=False).count(),
+        'total_users': CustomUser.objects.filter(is_superuser=False, is_approved=True).count(),
         'total_revenue': total_revenue,
         'total_bookings': latest_data.total_bookings,
         'total_listings': latest_data.total_listings,

@@ -48,7 +48,7 @@ def profile(request):
 @login_required
 @farmer_required
 def land_records(request):
-    records = LandRecord.objects.filter(user=request.user)
+    records = LandRecord.objects.filter(user=request.user).order_by('-created_at')
     page_obj, records = paginate_queryset(request, records)
     return render(request, 'farmer/land_records.html', {'records': records , 'page_obj': page_obj})
 

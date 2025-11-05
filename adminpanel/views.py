@@ -126,6 +126,28 @@ def land_records(request):
     }
     return render(request, 'adminpanel/land_records.html', context)
 
+@login_required
+@admin_required
+def approve_land(request, pk):
+    record = get_object_or_404(LandRecord, pk=pk)
+    if request.method == 'POST' and not record.is_verified:
+        record.is_verified = True
+        record.verified_by = request.user
+        record.verified_at = timezone.now()
+        record.save()
+        messages.success(request, "Land record approved successfully.")
+    return redirect('adminpanel:land_records')
+
+
+@login_required
+@admin_required
+def reject_land(request, pk):
+    record = get_object_or_404(LandRecord, pk=pk)
+    if request.method == 'POST' and not record.is_verified:
+        record.delete()  # or you can mark as rejected with a new field
+        messages.success(request, "Land record rejected successfully.")
+    return redirect('adminpanel:land_records')
+
 
 @login_required
 @admin_required

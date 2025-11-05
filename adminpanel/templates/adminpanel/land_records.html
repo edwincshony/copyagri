@@ -32,11 +32,17 @@
                 <td>{{ record.is_verified|yesno:"Yes,No" }}</td>
                 <td>
                     {% if not record.is_verified %}
-                        <form method="post" action="{% url 'adminpanel:verify_land' record.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to verify this land record?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-primary">Verify</button>
-                        </form>
-                    {% endif %}
+    <form method="post" action="{% url 'adminpanel:approve_land' record.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to approve this land record?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+    </form>
+
+    <form method="post" action="{% url 'adminpanel:reject_land' record.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to reject this land record?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+    </form>
+{% endif %}
+
                 </td>
             </tr>
             {% empty %}
